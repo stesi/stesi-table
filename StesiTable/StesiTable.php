@@ -1,4 +1,6 @@
 <?php
+namespace Stesi\StesiTable
+
 class StesiTable {
 	private $id;
 	private $columns = array ();
