@@ -1,5 +1,5 @@
 <?php
-namespace Stesi\StesiTable
+namespace Stesi\StesiTable;
 
 class StesiTable {
 	private $id;
