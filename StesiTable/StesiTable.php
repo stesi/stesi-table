@@ -4,13 +4,40 @@ namespace Stesi\StesiTable;
 class StesiTable {
 	private $id;
 	private $columns = array ();
+	private $columnReorderCallBack;
+	private $isColReorderable;
+	private $columnOrder;
+	
 	function __construct($id) {
 		$this->id = $id;
+		$this->isColReorderable=false;
 	}
+	
 	public function addColumn($columnName, $columnDescription = null, $globalSerchable = 0) {
 		$this->columns [$columnName] = new StesiColumn ( $columnName, $columnDescription ,$globalSerchable);
 		return $this->columns [$columnName];
 	}
+	
+	public function isColumnReorderable(){
+		return $this->isColReorderable;
+	}
+	public function setIsColumnReorderable($isColReorderable){
+		$this->isColReorderable=$isColReorderable;
+		return $this;
+	}
+	
+	public function setColumnReorderCallback($columnReorderCallBack){
+		$this->columnReorderCallBack=$columnReorderCallBack;
+	}
+	
+	public function setColumnOrder($columnOrder){
+		$this->columnOrder=$columnOrder;
+	}
+	
+	public function getColumnOrder(){
+		return $this->columnOrder;
+	}
+	
 	public function getTableData($draw, $recordsTotal, $recordsFiltered, $data) {
 		return json_encode ( [
 				"draw" => $draw,
@@ -34,7 +61,8 @@ class StesiTable {
 		}
 		return $tableColumnsNames;
 	}
-	public function getTable() {
+
+	public function getTable($ajaxCallBack) {
 		$table = "<table id=\"" . $this->id . "\" class=\"display\" cellspacing=\"0\" width=\"100%\">";
 		$table .= "<thead><tr>";
 		$tableColums = $this->getColumns ();
@@ -44,7 +72,7 @@ class StesiTable {
 		}
 		$table .= "</thead></table>";
 		$table .= "<script>";
-		$table .= '$("#' . $this->id . '").DataTable({
+		$table .= 'var datatable=$("#' . $this->id . '").DataTable({
 	       processing: true,
 			keys: true,
 			ordering:true,
@@ -62,9 +90,8 @@ class StesiTable {
         	    "processing": "Caricamento dati in corso..."
         	  },
         	order: [[ 0, "desc" ]],
-        "ajax": "mdr_test",
-				
-		"columns": [';
+        "ajax": "'.$ajaxCallBack.'"';
+		$table.=',columns:[';
 		foreach ( $tableColums as $column ) {
 			$table .= '{ "data": "' . $column->getColumnName ( false ) . '" },';
 		}
@@ -72,8 +99,8 @@ class StesiTable {
         ],
 				initComplete: function() {
 				   var api = this.api();
-			       $("#prova_filter input").unbind();
-			        $("#prova_filter input").bind("keyup", function(e) {
+			       $("#'.$this->id.'_filter input").unbind();
+			        $("#'.$this->id.'_filter input").bind("keyup", function(e) {
 			          if(e.keyCode == 13) {
 			        	  $("#collapsed_div2").css("display", "none");
 						  $("#collapse_filtri2").children("i").removeClass("fa-minus");
@@ -85,6 +112,31 @@ class StesiTable {
 			        });
 			}
 	});';
+		if($this->isColReorderable){
+			$table.="
+			new $.fn.dataTable.ColReorder(datatable,{
+				realtime: false";
+			if(!empty($this->columnOrder)){
+	            $table.=",order: ('".$this->columnOrder."').split(',')";
+	        }
+	        if(!empty($this->columnReorderCallBack)){
+	             $table.=",reorderCallback:function(){
+	            		$.ajax({
+									type : 'POST',
+									url : '".$this->columnReorderCallBack."',
+									dataType : 'JSON',
+									data : {
+										colReorderOrder : datatable.colReorder.order(),
+	             						azione: 'insertDatatableOrder',
+	             						dataTableId: '".$this->id."'
+	             						
+									}
+								});
+				}";
+	        }
+	        $table.="
+			});";
+		}
 		$table .= "</script>";
 		return $table;
 	}
