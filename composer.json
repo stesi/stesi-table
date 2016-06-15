@@ -3,7 +3,7 @@
 	"description" : "Simple class for fast manage js datatable from any kind of controller",
 	"license" : "MIT",
 	"require" : {
-		"php" : ">=5.6",
+		"php" : ">=5.6"
 	},
 	"autoload" : {
 		"psr-4" : {
