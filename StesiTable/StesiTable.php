@@ -45,15 +45,45 @@ class StesiTable {
 		$table .= "</thead></table>";
 		$table .= "<script>";
 		$table .= '$("#' . $this->id . '").DataTable({
-	        "processing": true,
-        "serverSide": true,
+	       processing: true,
+			keys: true,
+			ordering:true,
+			stateSave: true,
+			stateDuration: 24*60*60,
+			scrollY:        800,
+			scrollCollapse: true,
+	        scrollX:        true,
+	        fixedHeader:   true,
+			serverSide : true,
+        	"language": {
+        	    "search": "Ricerca Globale",
+        	    "lengthMenu": "Elem.per pagina _MENU_ ",
+        	    "info": "_PAGES_ Pagine / Totale elementi: _TOTAL_",
+        	    "processing": "Caricamento dati in corso..."
+        	  },
+        	order: [[ 0, "desc" ]],
         "ajax": "mdr_test",
+				
 		"columns": [';
 		foreach ( $tableColums as $column ) {
 			$table .= '{ "data": "' . $column->getColumnName ( false ) . '" },';
 		}
 		$table .= '
-        ]
+        ],
+				initComplete: function() {
+				   var api = this.api();
+			       $("#prova_filter input").unbind();
+			        $("#prova_filter input").bind("keyup", function(e) {
+			          if(e.keyCode == 13) {
+			        	  $("#collapsed_div2").css("display", "none");
+						  $("#collapse_filtri2").children("i").removeClass("fa-minus");
+						  $("#collapse_filtri2").children("i").removeClass("fa-plus");
+						  $("#collapse_filtri2").children("i").addClass("fa-plus");
+			        	  api.search( this.value ).draw();
+			            }
+			          
+			        });
+			}
 	});';
 		$table .= "</script>";
 		return $table;
