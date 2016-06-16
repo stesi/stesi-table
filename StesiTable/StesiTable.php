@@ -117,7 +117,7 @@ class StesiTable {
 			new $.fn.dataTable.ColReorder(datatable,{
 				realtime: false";
 			if(!empty($this->columnOrder)){
-	            $table.=",order: ('".$this->columnOrder."').split(',')";
+	            $table.=",order: [".implode($this->columnOrder,",")."]";
 	        }
 	        if(!empty($this->columnReorderCallBack)){
 	             $table.=",reorderCallback:function(){
@@ -127,7 +127,6 @@ class StesiTable {
 									dataType : 'JSON',
 									data : {
 										colReorderOrder : datatable.colReorder.order(),
-	             						azione: 'insertDatatableOrder',
 	             						dataTableId: '".$this->id."'
 	             						
 									}
