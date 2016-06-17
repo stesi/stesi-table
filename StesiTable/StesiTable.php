@@ -96,7 +96,7 @@ class StesiTable {
         "ajax": "'.$ajaxCallBack.'"';
 		$table.=',columns:[';
 		foreach ( $tableColums as $column ) {
-			$table .= '{ "data": "' . $column->getColumnName ( false ) . '" },';
+			$table .= '{ "class": "' . $column->getColumnName ( false ) . '","data": "' . $column->getColumnName ( false ) . '" },';
 		}
 		$table .= '
         ],
@@ -113,8 +113,7 @@ class StesiTable {
 			            }
 			          
 			        });
-			}
-			        		
+			},			        		
 			createdRow: function(row,data,index){';
 			foreach ( $tableColums as $column ) {
 				$columnStyles=$column->getColumnStyles();
@@ -122,14 +121,14 @@ class StesiTable {
 					
 					$table.="if(data['".$column->getColumnName(false)."']".$columnStyle->getConditionOperator()."'".$columnStyle->getValue()."'){";
 					$table .='
-							$("td."'.$column->getColumnName ( false ).', row)';
-					if(count($column->getClasses())>0){
-						$table.='.addClass("'.implode(" ",$column->getClasses()).'")';
+							$("td.'.$column->getColumnName ( false ).'", row)';
+					if(count($columnStyle->getClasses())>0){
+						$table.='.addClass("'.implode(" ",$columnStyle->getClasses()).'")';
 					}
-					if(count($column->getCss())>0){
-						foreach($column->getCss() as $css){
+					if(count($columnStyle->getCss())>0){
+						foreach($columnStyle->getCss() as $css){
 						
-							$table.='.addCss("'.$css["propertyName"].'",'.$css['propertyValue'].'");';
+							$table.='.css("'.$css["propertyName"].'","'.$css['value'].'")';
 						}
 					}
 					$table.=";
@@ -164,7 +163,7 @@ class StesiTable {
 	        $table.="
 			});";
 		}
-		$table .= "</script>";
+		$table .= "</script>";		
 		return $table;
 	}
 }
@@ -209,7 +208,7 @@ class StesiColumn {
 	
 	public function addColumnStyle($conditionOperator,$value){
 		$stesiColumnStyle=new StesiColumnStyle($conditionOperator,$value);
-		$this->stesiColumnStyle[]=$stesiColumnStyle;
+		$this->stesiColumnStyles[]=$stesiColumnStyle;
 		return $stesiColumnStyle;
 	}
 }
@@ -221,7 +220,7 @@ class StesiColumnStyle{
 	private $css;
 	
 	function __construct($conditionOperator,$value){
-		$this->operator=$conditionOperator;
+		$this->operator=($conditionOperator=="="?"==":$conditionOperator);
 		$this->value=$value;
 		$this->css=array();
 		$this->classes=array();
@@ -234,6 +233,7 @@ class StesiColumnStyle{
 	
 	function addClass($className){
 		$this->classes[]=$className;
+		return $this;
 	}
 	
 	function getClasses(){
