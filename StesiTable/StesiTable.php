@@ -119,6 +119,8 @@ class StesiTable {
 			foreach ( $tableColums as $column ) {
 				$columnStyles=$column->getColumnStyles();
 				foreach($columnStyles as $columnStyle){
+					
+					$table.="if(data['".$column->getColumnName(false)."']".$columnStyle->getConditionOperator()."'".$columnStyle->getValue()."'){";
 					$table .='
 							$("td."'.$column->getColumnName ( false ).', row)';
 					if(count($column->getClasses())>0){
@@ -130,7 +132,8 @@ class StesiTable {
 							$table.='.addCss("'.$css["propertyName"].'",'.$css['propertyValue'].'");';
 						}
 					}
-					$table.=";";
+					$table.=";
+					}";
 					
 				}				
 			}		
@@ -238,6 +241,14 @@ class StesiColumnStyle{
 	}
 	function getCss(){
 		return $this->css;
+	}
+	             								
+	function getConditionOperator(){
+	   return $this->operator;          								
+	}
+	
+	function getValue(){
+		return $this->value;
 	}
 }
 
