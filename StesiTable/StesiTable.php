@@ -66,7 +66,7 @@ class StesiTable {
 	}
 
 	public function getTable($ajaxCallBack) { 
-		$table = "<table id=\"" . $this->id . "\" class=\"display\" cellspacing=\"0\" width=\"100%\">";
+		$table = "<table id=\"" . $this->id . "\" cellspacing=\"0\" width=\"100%\">";
 		$table .= "<thead><tr>";
 		$tableColums = $this->getColumns ();
 
@@ -79,6 +79,7 @@ class StesiTable {
 	       processing: true,
 			keys: true,
 			ordering:true,
+			bSortable:true,
 			stateSave: true,
 			stateDuration: 24*60*60,
 			scrollY:        800,
