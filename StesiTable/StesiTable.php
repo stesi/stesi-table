@@ -62,7 +62,7 @@ class StesiTable {
 		return $tableColumnsNames;
 	}
 
-	public function getTable($ajaxCallBack) {
+	public function getTable($ajaxCallBack) { 
 		$table = "<table id=\"" . $this->id . "\" class=\"display\" cellspacing=\"0\" width=\"100%\">";
 		$table .= "<thead><tr>";
 		$tableColums = $this->getColumns ();
