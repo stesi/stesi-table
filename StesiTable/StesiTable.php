@@ -13,6 +13,9 @@ class StesiTable {
 		$this->isColReorderable=false;
 	}
 	
+	public function getId(){
+		return $this->id;
+	}
 	public function addColumn($columnName, $columnDescription = null, $globalSerchable = 0) {
 		$this->columns [$columnName] = new StesiColumn ( $columnName, $columnDescription ,$globalSerchable);
 		return $this->columns [$columnName];
