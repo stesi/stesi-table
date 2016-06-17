@@ -114,13 +114,35 @@ class StesiTable {
 			          
 			        });
 			}
+			        		
+			createdRow: function(row,data,index){';
+			foreach ( $tableColums as $column ) {
+				$columnStyles=$column->getColumnStyles();
+				foreach($columnStyles as $columnStyle){
+					$table .='
+							$("td."'.$column->getColumnName ( false ).', row)';
+					if(count($column->getClasses())>0){
+						$table.='.addClass("'.implode(" ",$column->getClasses()).'")';
+					}
+					if(count($column->getCss())>0){
+						foreach($column->getCss() as $css){
+						
+							$table.='.addCss("'.$css["propertyName"].'",'.$css['propertyValue'].'");';
+						}
+					}
+					$table.=";";
+					
+				}				
+			}		
+			        		
+			$table.='}
 	});';
 		if($this->isColReorderable){
 			$table.="
 			new $.fn.dataTable.ColReorder(datatable,{
 				realtime: false";
 			if(!empty($this->columnOrder)){
-	            $table.=",order: [".implode($this->columnOrder,",")."]";
+	            $table.=",order: [".implode(",",$this->columnOrder)."]";
 	        }
 	        if(!empty($this->columnReorderCallBack)){
 	             $table.=",reorderCallback:function(){
@@ -147,10 +169,12 @@ class StesiColumn {
 	private $columnName;
 	private $columnDescription;
 	private $globalSearcheable;
-
+	private $stesiColumnStyles;
+	
 	function __construct($columnName, $columnDescription = null, $globalSearcheable = 0) {
 		$this->columnName = $columnName;
 		$this ->globalSearcheable = $globalSearcheable;
+		$this->stesiColumnStyles=array();
 		if ($columnDescription)
 			$this->columnDescription = $columnDescription;
 			else
@@ -174,6 +198,46 @@ class StesiColumn {
 	public function isGlobalSerchable()
 	{
 		return $this ->globalSearcheable;
+	}
+	
+	public function getColumnStyles(){
+		return $this->stesiColumnStyles;
+	}
+	
+	public function addColumnStyle($conditionOperator,$value){
+		$stesiColumnStyle=new StesiColumnStyle($conditionOperator,$value);
+		$this->stesiColumnStyle[]=$stesiColumnStyle;
+		return $stesiColumnStyle;
+	}
+}
+
+class StesiColumnStyle{
+	private $operator;
+	private $value;
+	private $classes;
+	private $css;
+	
+	function __construct($conditionOperator,$value){
+		$this->operator=$conditionOperator;
+		$this->value=$value;
+		$this->css=array();
+		$this->classes=array();
+	}
+	
+	function addCss($propertyName,$value){
+		$this->css[]=array("propertyName"=>$propertyName,"value"=>$value);
+		return $this;
+	}
+	
+	function addClass($className){
+		$this->classes[]=$className;
+	}
+	
+	function getClasses(){
+		return $this->classes;
+	}
+	function getCss(){
+		return $this->css;
 	}
 }
 
