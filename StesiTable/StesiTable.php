@@ -103,7 +103,7 @@ class StesiTable {
         "ajax": "' . $ajaxCallBack . '"';
 		$table .= ',columns:[';
 		foreach ( $tableColums as $column ) {
-			$table .= '{ "class": "' . $column->getColumnName ( false ) . '","data": "' . $column->getColumnName ( false ) . '" },';
+			$table .= '{ "class": "' . $column->getColumnName ( false ) . '","data": "' . $column->getColumnName ( false ) . '","name":"'.$column->getColumnName(true).'" },';
 		}
 		$table .= '
         ],
@@ -120,6 +120,17 @@ class StesiTable {
 			            }
 			          
 			        });
+			    // Apply the search
+    			this.api().columns().every( function () {
+        		var that = this;
+ 				$( "input", this.footer() ).unbind();
+        		$( "input", this.footer() ).on( "keyup change", function (e) {
+              		if(e.keyCode == 13) {
+                		that.search( this.value )
+                    	.draw();
+            	}
+        } );
+    } );
 			},			        		
 			createdRow: function(row,data,index){';
 		foreach ( $tableColums as $column ) {
@@ -170,17 +181,10 @@ class StesiTable {
 			});";
 		}
 		$table .= "		
-				 // Apply the search
-    datatable.columns().every( function () {
-        var that = this;
- 
-        $( 'input', this.footer() ).on( 'keyup change', function (e) {
-              if(e.keyCode == 13) {
-                that.search( this.value )
-                    .draw();
-            }
-        } );
-    } );
+				$( document ).ready(function() {
+  
+});
+				 
 				
 				</script>";
 		return $table;
