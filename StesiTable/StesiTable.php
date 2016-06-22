@@ -211,7 +211,7 @@ class StesiTable {
 		$table .= '
         ],
 				initComplete: function() {
-				   var api = this.api();
+				   var api = this.api();				
 			       $("#' . $this->id . '_filter input").unbind();
 			        $("#' . $this->id . '_filter input").bind("keyup", function(e) {
 			          if(e.keyCode == 13) {
@@ -223,17 +223,6 @@ class StesiTable {
 			            }
 			          
 			        });
-			    // Apply the search
-    			this.api().columns().every( function () {
-        		var that = this;
- 				$( "input", this.footer() ).unbind();
-        		$( "input", this.footer() ).on( "keyup change", function (e) {
-              		if(e.keyCode == 13) {
-                		that.search( this.value )
-                    	.draw();
-            	}
-        } );
-    } );
 			},			        		
 			createdRow: function(row,data,index){';
 		foreach ( $tableColums as $column ) {
@@ -265,7 +254,21 @@ class StesiTable {
 		}
 		
 		$table .= '}
-	});';
+	});
+			 // Restore state
+        var state = datatable.state.loaded();
+        if (state) {
+            datatable.columns().eq(0).each(function (colIdx) {
+                var colSearch = state.columns[colIdx].search;
+ 
+                if (colSearch.search) {
+                    $("input", datatable.column(colIdx).footer()).val(colSearch.search);
+                }
+            });
+ 
+            datatable.draw();
+        }	
+				';
 		/*
 		 * Column Reorderable function:
 		 * Reorder columns if specified and create an ajax call to the columnReorderCallBack if is specified 
@@ -289,7 +292,18 @@ class StesiTable {
 	             						
 									}
 								});
-				}";
+	             	  // Apply the search
+	    			datatable.columns().every( function () {
+		        		var that = this;
+		 				$( 'input', this.footer() ).unbind();
+		        		$( 'input', this.footer() ).on( 'keyup change', function (e) {
+		              		if(e.keyCode == 13) {
+		                		that.search( this.value )
+		                    	.draw();
+		            			}
+		             	});
+						});
+	             	}";
 			}
 			$table .= "
 			});";
