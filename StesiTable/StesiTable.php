@@ -327,6 +327,7 @@ class StesiColumn {
 	private $columnDescription;
 	private $globalSearcheable;
 	private $stesiColumnStyles;
+	private $columnType;
 	/**
 	 * 
 	 * @param string $columnName name of the column
@@ -341,6 +342,7 @@ class StesiColumn {
 			$this->columnDescription = $columnDescription;
 		else
 			$this->columnDescription = $columnName;
+		$this->columnType=StesiColumnType::TEXT;
 	}
 	/**
 	 * 
@@ -352,6 +354,20 @@ class StesiColumn {
 		else
 			return str_replace ( ".", "", $this->columnName );
 	}
+	/**
+	 * Define type of stesiColumn
+	 * @param StesiColumnType $stesiColumnType 
+	 */	
+	public function setColumnType(StesiColumnType $stesiColumnType){
+		$this->columnType=$columnType;
+	}
+	/**
+	 * @return StesiColumnType $columnType
+	 */
+	public function getColumnType(){
+		return $this->columnType;
+	}
+	
 	public function getColumnDescription() {
 		return $this->columnDescription;
 	}
@@ -370,7 +386,22 @@ class StesiColumn {
 		$this->stesiColumnStyles [] = $stesiColumnStyle;
 		return $stesiColumnStyle;
 	}
+	
 }
+/**
+ * 
+ * Define the type of column
+ * @author Vincenzo
+ *
+ */	
+class StesiColumnType
+{
+	const TEXT  = 0;
+	const SELECT = 1;
+	const MULTISELECT = 2;
+	const NUMERIC=3;
+}
+
 /**
  * Define style of the column of the DataTable
  *  */
