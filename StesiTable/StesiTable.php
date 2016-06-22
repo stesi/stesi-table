@@ -57,7 +57,7 @@ class StesiTable {
 	 * @param  string $columnName name of the column
 	 * @param  string $columnDescription description of column: if it is null, assume the same value of column name
 	 * @param  boolean $globalSearchable if true, use the column into global search
-	 * @return int
+	 * @return StesiColumn $column
 	 */
 	public function addColumn($columnName, $columnDescription = null, $globalSerchable = 0) {
 		$this->columns [$columnName] = new StesiColumn ( $columnName, $columnDescription, $globalSerchable );
