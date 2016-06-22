@@ -297,7 +297,8 @@ class StesiTable {
 		        		var that = this;
 		 				$( 'input', this.footer() ).unbind();
 		        		$( 'input', this.footer() ).on( 'keyup change', function (e) {
-		              		if(e.keyCode == 13) {
+
+		              		if(e.keyCode == 13 || (e.keyCode==8 && this.value=='')) {
 		                		that.search( this.value )
 		                    	.draw();
 		            			}
