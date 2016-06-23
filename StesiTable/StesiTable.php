@@ -274,7 +274,24 @@ class StesiTable {
 		 * Reorder columns if specified and create an ajax call to the columnReorderCallBack if is specified 
 		 * */
 		if ($this->isColReorderable) {
-			$table .= "
+			$table.=$this->getColReorderFunction();
+		}
+		$table .= "		
+				$( document ).ready(function() {
+  
+});
+				 
+				
+				</script>";
+		return $table;
+	}
+	
+	/**
+	 * @return string colReorderFn with behaviours
+	 */
+	private function getColReorderFunction(){
+		
+		$table = "
 			new $.fn.dataTable.ColReorder(datatable,{
 				realtime: false";
 			if (! empty ( $this->columnOrder )) {
@@ -308,15 +325,9 @@ class StesiTable {
 			}
 			$table .= "
 			});";
-		}
-		$table .= "		
-				$( document ).ready(function() {
-  
-});
-				 
-				
-				</script>";
-		return $table;
+			
+			return $table;
+		
 	}
 }
 /*
@@ -328,6 +339,9 @@ class StesiColumn {
 	private $globalSearcheable;
 	private $stesiColumnStyles;
 	private $columnType;
+	private $defaultValue;
+	private $labelValue;
+	
 	/**
 	 * 
 	 * @param string $columnName name of the column
@@ -371,21 +385,69 @@ class StesiColumn {
 	public function getColumnDescription() {
 		return $this->columnDescription;
 	}
+	/**
+	 * 
+	 * @param string $columnDescription
+	 */
 	public function setColumnDescription($columnDescription) {
 		$this->columnDescription = $columnDescription;
 		return $this;
 	}
+
 	public function isGlobalSerchable() {
 		return $this->globalSearcheable;
 	}
 	public function getColumnStyles() {
 		return $this->stesiColumnStyles;
 	}
+	/**
+	 * 
+	 * @param string $conditionOperator
+	 * @param string $value
+	 * @return StesiColumnStyle $stesiColumnStyle
+	 */
 	public function addColumnStyle($conditionOperator, $value) {
 		$stesiColumnStyle = new StesiColumnStyle ( $conditionOperator, $value );
 		$this->stesiColumnStyles [] = $stesiColumnStyle;
 		return $stesiColumnStyle;
 	}
+	
+	/**
+	 * defaultValue
+	 * @return string
+	 */
+	public function getDefaultValue(){
+		return $this->defaultValue;
+	}
+	
+	/**
+	 * defaultValue
+	 * @param string $defaultValue
+	 * @return StesiTable
+	 */
+	public function setDefaultValue($defaultValue){
+		$this->defaultValue = $defaultValue;
+		return $this;
+	}
+	
+	/**
+	 * labelValue
+	 * @return string
+	 */
+	public function getLabelValue(){
+		return $this->labelValue;
+	}
+	
+	/**
+	 * labelValue
+	 * @param string $labelValue
+	 * @return StesiTable
+	 */
+	public function setLabelValue($labelValue){
+		$this->labelValue = $labelValue;
+		return $this;
+	}
+	
 	
 }
 /**
@@ -457,5 +519,8 @@ class StesiColumnStyle {
 	function getValue() {
 		return $this->value;
 	}
+
+   
+
 }
 
