@@ -154,28 +154,23 @@ class StesiTable {
 	 */
 	public function getTable($ajaxCallBack) {
 		$table = "<table id=\"" . $this->id . "\" cellspacing=\"0\" width=\"100%\">";
-		$table .= "<thead><tr>";
+	
 		$tableColums = $this->getColumns ();
+		$th="<tr>";
+		foreach ( $tableColums as $column ) {
+			$th .= "<th  data-type='".(
+					array_flip((new \ReflectionClass("Stesi\StesiTable\StesiColumnType"))->getConstants())[$column->getColumnType()]
+					)."'>" . $column->getColumnDescription () . "</th>";
 		
-		foreach ( $tableColums as $column ) {
-			$table .= "<th>" . $column->getColumnDescription () . "</th>";
 		}
-		$table .= "</thead>";
-		$table .= "<tfoot><tr>";
-		$tableColums = $this->getColumns ();
-		/*
-		 * Foreach column create header and footer cell using columnDescription
-		 * */
-		foreach ( $tableColums as $column ) {
-			$table .= "<th>" . $column->getColumnDescription () . "</th>";
-		}
-		$table .= "</tfoot></table>";
+		$th.="</tr>";
+		
+		$table .= "<thead>";
+		$table .= $th."</thead>";
+		$table .= "<tfoot>";
+		$table .= $th."</tfoot></table>";
 		$table .= "<script>
-				 // Setup - add a text input to each footer cell
-    $('#" . $this->id . " tfoot th').each( function () {
-        var title = $(this).text();
-        $(this).html( '<input type=\"text\" placeholder=\"Search '+title+'\" />' );
-    } );";
+				";
 		$table .= 'var datatable=$("#' . $this->id . '").DataTable({
 	       processing: true,
 			keys: true,
@@ -211,18 +206,19 @@ class StesiTable {
 		$table .= '
         ],
 				initComplete: function() {
-				   var api = this.api();				
-			       $("#' . $this->id . '_filter input").unbind();
-			        $("#' . $this->id . '_filter input").bind("keyup", function(e) {
-			          if(e.keyCode == 13) {
-			        	  $("#collapsed_div2").css("display", "none");
-						  $("#collapse_filtri2").children("i").removeClass("fa-minus");
-						  $("#collapse_filtri2").children("i").removeClass("fa-plus");
-						  $("#collapse_filtri2").children("i").addClass("fa-plus");
-			        	  api.search( this.value ).draw();
-			            }
-			          
-			        });
+				   initFooterEvent();
+				   this.api().columns().every( function () {
+					var column=this;
+	               column.data().unique().sort().each( function ( d, j ) {
+	             			if(d){
+							if(column.search() == d){
+						        $( "select", column.footer() ).append( "<option value=\""+d+"\" selected=\"selected\">"+d+"</option>" )
+						    }else {
+		                        $( "select", column.footer() ).append( "<option value=\""+d+"\">"+d+"</option>" )
+						    }
+	           				}
+		                } );
+				   });
 			},			        		
 			createdRow: function(row,data,index){';
 		foreach ( $tableColums as $column ) {
@@ -255,6 +251,23 @@ class StesiTable {
 		
 		$table .= '}
 	});
+				
+				 // Setup - add a text input to each footer cell
+				 datatable.columns().every( function () {
+				var column=this;
+					var footer=$(this.footer());
+    	var dataType=footer.data("type");
+        var title = footer.text();
+    	switch(dataType){
+				    		case "TEXT": 
+			        		 	$(footer).html( "<input type=\"text\" placeholder=\"Search "+title+"\" />" );
+    						break;
+				    		case "SELECT": 
+				    	 		$(footer).html("<select><option value=\"\"></option></select>")				 			
+				    		break;
+				    	}
+       
+    } );
 			 // Restore state
         var state = datatable.state.loaded();
         if (state) {
@@ -274,24 +287,7 @@ class StesiTable {
 		 * Reorder columns if specified and create an ajax call to the columnReorderCallBack if is specified 
 		 * */
 		if ($this->isColReorderable) {
-			$table.=$this->getColReorderFunction();
-		}
-		$table .= "		
-				$( document ).ready(function() {
-  
-});
-				 
-				
-				</script>";
-		return $table;
-	}
-	
-	/**
-	 * @return string colReorderFn with behaviours
-	 */
-	private function getColReorderFunction(){
-		
-		$table = "
+			$table .= "
 			new $.fn.dataTable.ColReorder(datatable,{
 				realtime: false";
 			if (! empty ( $this->columnOrder )) {
@@ -309,9 +305,19 @@ class StesiTable {
 	             						
 									}
 								});
-	             	  // Apply the search
+	             				initFooterEvent();
+	             	}";
+			}
+			$table .= "
+			});";
+		}
+		$table .= "		
+				var initFooterEvent=function(){
+				
+				   // Apply the search
 	    			datatable.columns().every( function () {
 		        		var that = this;
+	             		var column=this;
 		 				$( 'input', this.footer() ).unbind();
 		        		$( 'input', this.footer() ).on( 'keyup change', function (e) {
 
@@ -320,19 +326,24 @@ class StesiTable {
 		                    	.draw();
 		            			}
 		             	});
+	             		$( 'select', this.footer() ).unbind();
+	             	   $( 'select', this.footer() ).on( 'change', function () {
+                        var val = $.fn.dataTable.util.escapeRegex(
+                            $(this).val()
+                        );
+ 
+                        column
+                            .search( val ? val : '', true, false )
+                            .draw();
+                    	} );
+ 
+		              
 						});
-	             	}";
-			}
-			$table .= "
-			});";
-			
-			return $table;
-		
+				}
+				</script>";
+		return $table;
 	}
 }
-/*
- * Stesi Column used to define a column of the DataTable.
- * */
 class StesiColumn {
 	private $columnName;
 	private $columnDescription;
@@ -370,9 +381,9 @@ class StesiColumn {
 	}
 	/**
 	 * Define type of stesiColumn
-	 * @param StesiColumnType $stesiColumnType 
+	 * @param $columnType 
 	 */	
-	public function setColumnType(StesiColumnType $stesiColumnType){
+	public function setColumnType($columnType){
 		$this->columnType=$columnType;
 	}
 	/**
@@ -514,4 +525,3 @@ class StesiColumnStyle {
 		return $this->value;
 	}
 }
-
