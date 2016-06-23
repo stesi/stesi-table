@@ -339,8 +339,8 @@ class StesiColumn {
 	private $globalSearcheable;
 	private $stesiColumnStyles;
 	private $columnType;
-	private $defaultValue;
-	private $labelValue;
+	private $stesiColumnValue;
+	
 	
 	/**
 	 * 
@@ -413,41 +413,22 @@ class StesiColumn {
 	}
 	
 	/**
-	 * defaultValue
-	 * @return string
+	 * stesiColumnValue return array of default value
+	 * @return array
 	 */
-	public function getDefaultValue(){
-		return $this->defaultValue;
+	public function getStesiColumnValue(){
+		return $this->stesiColumnValue;
 	}
-	
 	/**
-	 * defaultValue
-	 * @param string $defaultValue
-	 * @return StesiTable
+	 * 
+	 * @param string $key Default Value
+	 * @param string $value Label Value to use for example into select type
 	 */
-	public function setDefaultValue($defaultValue){
-		$this->defaultValue = $defaultValue;
+	public function addStesiColumnValue($key,$value=null){
+		$this->stesiColumnValue[]=new StesiColumnValue($key,$value);
 		return $this;
 	}
-	
-	/**
-	 * labelValue
-	 * @return string
-	 */
-	public function getLabelValue(){
-		return $this->labelValue;
-	}
-	
-	/**
-	 * labelValue
-	 * @param string $labelValue
-	 * @return StesiTable
-	 */
-	public function setLabelValue($labelValue){
-		$this->labelValue = $labelValue;
-		return $this;
-	}
-	
+		
 	
 }
 /**
@@ -463,7 +444,20 @@ class StesiColumnType
 	const MULTISELECT = 2;
 	const NUMERIC=3;
 }
-
+/**
+ * 
+ * @author Vincenzo
+ * Type with key\value used to popolate select or to define default value
+ */
+class StesiColumnValue{
+	public $key;
+	public $value;
+	
+	function ___construct($key,$value){
+		$this->key=$key;
+		$this->value=$value;
+	}
+}
 /**
  * Define style of the column of the DataTable
  *  */
@@ -519,8 +513,5 @@ class StesiColumnStyle {
 	function getValue() {
 		return $this->value;
 	}
-
-   
-
 }
 
