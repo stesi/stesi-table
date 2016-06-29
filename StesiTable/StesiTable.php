@@ -221,6 +221,57 @@ class StesiTable {
 				";
 		$table .= '
 				
+				 $.fn.serializeForm = function() {
+
+    if ( this.length < 1) { 
+      return false; 
+    }
+
+    var data = {};
+    var lookup = data; 
+    var selector = ":input[type!=\"checkbox\"][type!=\"radio\"], input:checked";
+    var parse = function() {
+
+      // Ignore disabled elements
+      if (this.disabled) {
+        return;
+      }
+
+      // data[a][b] becomes [ data, a, b ]
+      var named = this.name.replace(/\[([^\]]+)?\]/g, ",$1").split(",");
+      var cap = named.length - 1;
+      var $el = $( this );
+
+      // Ensure that only elements with valid `name` properties will be serialized
+      if ( named[ 0 ] ) {
+        for ( var i = 0; i < cap; i++ ) {
+          // move down the tree - create objects or array if necessary
+          lookup = lookup[ named[i] ] = lookup[ named[i] ] ||
+            ( (named[ i + 1 ] === "" || named[ i + 1 ] === "0") ? [] : {} );
+        }
+
+        // at the end, push or assign the value
+        if ( lookup.length !==  undefined ) {
+          lookup.push( $el.val() );
+        }else {
+          lookup[ named[ cap ] ]  = $el.val();
+        }
+
+        // assign the reference back to root
+        lookup = data;
+      }
+    };
+
+    // first, check for elements passed into this function
+    this.filter( selector ).each( parse );
+
+    // then parse possible child elements
+    this.find( selector ).each( parse );
+
+    // return data
+    return data;
+  };
+			
 				var datatable=$("#' . $this->id . '").DataTable({
 	       processing: true,
 			keys: true,
@@ -244,18 +295,7 @@ class StesiTable {
     "url": "' . $ajaxCallBack . '",
     type:"POST",
     data: function ( d ) {
-    		var mio_array = new Array();
-			mio_array[0] = new Array();
-			mio_array[1] = new Array();
-    		mio_array[0][0] = "Primo array, prima voce.";
-			mio_array[0][1] = "Primo array, seconda voce.";
-			mio_array[0][2] = "Primo array, terza voce.";
-			mio_array[1][0] = "Secondo array, prima voce.";	
-mio_array[1][1] = "Secondo array, seconda voce.";
-mio_array[1][2] = "Secondo array, terza voce.";
-    		
-    		
-		d.filter= mio_array;
+      	d.filter=$("#'.$this->id.'_form").serializeForm();
     		
 	}
   }';
