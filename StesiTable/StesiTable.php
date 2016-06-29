@@ -279,7 +279,7 @@ class StesiTable {
                 }
             });
  
-            datatable.draw();
+            //datatable.draw();//Francesco per doppia chiamata
         }	
 				';
 		/*
