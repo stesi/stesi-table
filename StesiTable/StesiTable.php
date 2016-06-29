@@ -220,7 +220,7 @@ class StesiTable {
 		$table .= "<script>
 				";
 		$table .= '
-			
+				
 				var datatable=$("#' . $this->id . '").DataTable({
 	       processing: true,
 			keys: true,
@@ -244,7 +244,18 @@ class StesiTable {
     "url": "' . $ajaxCallBack . '",
     type:"POST",
     data: function ( d ) {
-      	d.filter=$("#'.$this->id.'_form").serializeArray();
+    		var mio_array = new Array();
+			mio_array[0] = new Array();
+			mio_array[1] = new Array();
+    		mio_array[0][0] = "Primo array, prima voce.";
+			mio_array[0][1] = "Primo array, seconda voce.";
+			mio_array[0][2] = "Primo array, terza voce.";
+			mio_array[1][0] = "Secondo array, prima voce.";	
+mio_array[1][1] = "Secondo array, seconda voce.";
+mio_array[1][2] = "Secondo array, terza voce.";
+    		
+    		
+		d.filter= mio_array;
     		
 	}
   }';
