@@ -2,6 +2,11 @@
 
 namespace Stesi\StesiTable;
 
+
+use PFBC\Form;
+use PFBC;
+
+
 /**
  * Class that manage Datatable
  *
@@ -38,10 +43,18 @@ class StesiTable {
 	 */	
 	private $columnOrder;
 	
-	
-	function __construct($id) {
+	private $form;
+	/**
+	 * 
+	 * @param int $id
+	 * @param boolean $useForm if true, use PFBC Form
+	 */
+	function __construct($id,$useForm=false) {
 		$this->id = $id;
 		$this->isColReorderable = false;
+		if($useForm){
+			$this->form=new Form($this->id."_form");
+		}
 	}
 	
 	/**
@@ -59,9 +72,18 @@ class StesiTable {
 	 * @param  boolean $globalSearchable if true, use the column into global search
 	 * @return StesiColumn $column
 	 */
-	public function addColumn($columnName, $columnDescription = null, $globalSerchable = 0) {
-		$this->columns [$columnName] = new StesiColumn ( $columnName, $columnDescription, $globalSerchable );
-		return $this->columns [$columnName];
+	public function addColumn(StesiColumn $stesiColumn){
+		$this->columns [$stesiColumn->getColumnName()]=$stesiColumn;
+		if($this->form){
+			//Se è settato a true, creo un elemento della form instanziando dinamicamente un elemento PFBC e aggiungendolo alla form
+			$class=new \ReflectionClass(
+					"PFBC\Element\\".(array_flip((new \ReflectionClass("Stesi\StesiTable\StesiColumnType"))->getConstants())[$stesiColumn->getColumnType()]));
+			if(!$class)
+				throw new \Exception("PFBC class ".$class." not found");
+			$instance = $class->newInstanceArgs(array($stesiColumn->getColumnDescription(), $stesiColumn->getColumnName(), $stesiColumn->getOptions(),$stesiColumn->getProperties()));
+			$this->form->addElement($instance);			
+		}
+		return $this->columns [$stesiColumn->getColumnName()];
 	}
 	
 	/**
@@ -147,12 +169,38 @@ class StesiTable {
 		}
 		return $tableColumnsNames;
 	}
+	
+	/**
+	 *
+	 * @param boolean $onlyGlobalSerchable
+	 * @return array $tableColumnsDescription
+	 */
+	public function getTableColumnsDescription($onlyGlobalSerchable = 0) {
+		$tableColumnsDescription = array ();
+	
+		foreach ( $this->columns as $column ) {
+			if (! $onlyGlobalSerchable)
+				$tableColumnsDescription [] = $column->getColumnDescription ();
+				else {
+					if ($column->isGlobalSerchable ())
+						$tableColumnsDescription [] = $column->getColumnDescription ();
+				}
+		}
+		return $tableColumnsDescription;
+	}
+	
 	/**
 	 * 
 	 * @param string $ajaxCallBack name of function to call to render Datatable
 	 * @return string html of DataTable with the javascript that manage the table 
 	 */
 	public function getTable($ajaxCallBack) {
+		if($this->form){
+			$this->form->setAttribute("action", $ajaxCallBack);
+			$this->form->configure(array(
+					"prevent" => array("bootstrap", "jQuery","jqueryui")
+			));
+		}
 		$table = "<table id=\"" . $this->id . "\" cellspacing=\"0\" width=\"100%\">";
 	
 		$tableColums = $this->getColumns ();
@@ -171,7 +219,9 @@ class StesiTable {
 		$table .= $th."</tfoot></table>";
 		$table .= "<script>
 				";
-		$table .= 'var datatable=$("#' . $this->id . '").DataTable({
+		$table .= '
+			
+				var datatable=$("#' . $this->id . '").DataTable({
 	       processing: true,
 			keys: true,
 			ordering:true,
@@ -190,7 +240,15 @@ class StesiTable {
         	    "processing": "Caricamento dati in corso..."
         	  },
         	order: [[ 0, "desc" ]],
-        "ajax": "' . $ajaxCallBack . '"';
+        "ajax": {
+    "url": "' . $ajaxCallBack . '",
+    type:"POST",
+    data: function ( d ) {
+      	d.filter=$("#'.$this->id.'_form").serializeArray();
+    		
+	}
+  }';
+		//$("#'.$this->id.'_form").serialize();
 		$table .= ',columns:[';
 		/*
 		 * Create column dinamically with custom class that has the same name of column, data with columnName without point (ex ArticoliNatura), name with columnName with point (ex Articoli.Natura)
@@ -206,8 +264,17 @@ class StesiTable {
 		$table .= '
         ],
 				initComplete: function() {
-				   initFooterEvent();
-				   this.api().columns().every( function () {
+						var api = this.api();				  
+				  $("#' . $this->id . '_filter input").unbind();
+			        $("#' . $this->id . '_filter input").bind("keyup", function(e) {
+			          if(e.keyCode == 13 || (e.keyCode==8 && this.value=="")) {
+			        	  api.search( this.value ).draw();
+			            }
+			          
+			        });
+			        		
+				   //initFooterEvent();
+				   api.columns().every( function () {
 					var column=this;
 	               column.data().unique().sort().each( function ( d, j ) {
 	             			if(d){
@@ -251,23 +318,7 @@ class StesiTable {
 		
 		$table .= '}
 	});
-				
-				 // Setup - add a text input to each footer cell
-				 datatable.columns().every( function () {
-				var column=this;
-					var footer=$(this.footer());
-    	var dataType=footer.data("type");
-        var title = footer.text();
-    	switch(dataType){
-				    		case "TEXT": 
-			        		 	$(footer).html( "<input type=\"text\" placeholder=\"Search "+title+"\" />" );
-    						break;
-				    		case "SELECT": 
-				    	 		$(footer).html("<select><option value=\"\"></option></select>")				 			
-				    		break;
-				    	}
-       
-    } );
+	
 			 // Restore state
         var state = datatable.state.loaded();
         if (state) {
@@ -282,6 +333,25 @@ class StesiTable {
             datatable.draw();
         }	
 				';
+		
+
+// 		$("#' . $this->id . '_form input").unbind();
+// 		$("#' .$this->id . '_form input").bind("keyup", function(e) {
+// 			if(e.keyCode == 13 || (e.keyCode==8 && this.value=="")) {
+		
+// 				var t=datatable;
+// 				$("#' .$this->id . '_form input").each(function(index){
+// 					if(this.value!=""){
+// 						t=t.column(($(this)).attr("name")+":name");
+// 						t=t.search(this.value);
+// 					}
+// 				});
+// 					console.log(t.draw());
+// 			}
+// 		});
+
+		
+		
 		/*
 		 * Column Reorderable function:
 		 * Reorder columns if specified and create an ajax call to the columnReorderCallBack if is specified 
@@ -302,7 +372,6 @@ class StesiTable {
 									data : {
 										colReorderOrder : datatable.colReorder.order(),
 	             						dataTableId: '" . $this->id . "'
-	             						
 									}
 								});
 	             				initFooterEvent();
@@ -343,6 +412,13 @@ class StesiTable {
 				</script>";
 		return $table;
 	}
+	
+	public function renderForm(){
+		if($this->form){
+			return $this->form->render(true);
+		}
+		return "";
+	}
 }
 class StesiColumn {
 	private $columnName;
@@ -351,6 +427,8 @@ class StesiColumn {
 	private $stesiColumnStyles;
 	private $columnType;
 	private $stesiColumnValue;
+	private $options;
+	private $properties;
 	
 	
 	/**
@@ -367,7 +445,9 @@ class StesiColumn {
 			$this->columnDescription = $columnDescription;
 		else
 			$this->columnDescription = $columnName;
-		$this->columnType=StesiColumnType::TEXT;
+		$this->columnType=StesiColumnType::TextBox;
+		$this->options=array();
+		$this->properties=array();
 	}
 	/**
 	 * 
@@ -385,6 +465,7 @@ class StesiColumn {
 	 */	
 	public function setColumnType($columnType){
 		$this->columnType=$columnType;
+		return $this;
 	}
 	/**
 	 * @return StesiColumnType $columnType
@@ -405,6 +486,14 @@ class StesiColumn {
 		return $this;
 	}
 
+	/**
+	 * Add an array of option used in PFBC column
+	 * @param unknown $options
+	 */
+	public function addOptions($options){
+		$this->options=$options;
+	}
+	
 	public function isGlobalSerchable() {
 		return $this->globalSearcheable;
 	}
@@ -430,16 +519,36 @@ class StesiColumn {
 	public function getStesiColumnValue(){
 		return $this->stesiColumnValue;
 	}
+	
 	/**
-	 * 
-	 * @param string $key Default Value
-	 * @param string $value Label Value to use for example into select type
+	 * Take in input a list of options to use in a select\multiselect column type
+	 * @param array $options
 	 */
-	public function addStesiColumnValue($key,$value=null){
-		$this->stesiColumnValue[]=new StesiColumnValue($key,$value);
+	public function setOptions(array $options){
+		$this->options=$options;
 		return $this;
 	}
-		
+	/**
+	 * @return array $options
+	 */
+	public function getOptions(){
+		return $this->options;
+	}
+	
+	/**
+	 * Take in input a list of properties to configure column
+	 * @param array $properties
+	 */
+	public function setProperties(array $properties){
+		$this->properties=$properties;
+		return $this;
+	}
+	/**
+	 * @return array $properties
+	 */
+	public function getProperties(){
+		return $this->properties;
+	}
 	
 }
 /**
@@ -450,24 +559,12 @@ class StesiColumn {
  */	
 class StesiColumnType
 {
-	const TEXT  = 0;
-	const SELECT = 1;
-	const MULTISELECT = 2;
-	const NUMERIC=3;
-}
-/**
- * 
- * @author Vincenzo
- * Type with key\value used to popolate select or to define default value
- */
-class StesiColumnValue{
-	public $key;
-	public $value;
-	
-	function ___construct($key,$value){
-		$this->key=$key;
-		$this->value=$value;
-	}
+	const TextBox  = 0;
+	const Select = 1;
+	const Number=3;
+	const Date=4;
+	const DateTime=5;
+	const TextArea=6;
 }
 /**
  * Define style of the column of the DataTable
