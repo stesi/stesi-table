@@ -5,7 +5,7 @@ namespace Stesi\StesiTable;
 
 use PFBC\Form;
 use PFBC;
-use StesiColumn;
+use PFBC\Element\Button;
 
 /**
  * Class that manage Datatable
@@ -54,6 +54,7 @@ class StesiTable {
 		$this->isColReorderable = false;
 		if($useForm){
 			$this->form=new Form($this->id."_form");
+			
 		}
 	}
 	
@@ -196,10 +197,11 @@ class StesiTable {
 	 */
 	public function getTable($ajaxCallBack) {
 		if($this->form){
-			$this->form->setAttribute("action", $ajaxCallBack);
+			$this->form->setAttribute("action", null);
 			$this->form->configure(array(
 					"prevent" => array("bootstrap", "jQuery","jqueryui")
 			));
+			$this->form->addElement(new Button("Filtra","button",array("id"=>"filter_button","class"=>"btn-primary")));
 		}
 		$table = "<table id=\"" . $this->id . "\" cellspacing=\"0\" width=\"100%\">";
 	
@@ -228,7 +230,7 @@ class StesiTable {
 
     var data = {};
     var lookup = data; 
-    var selector = ":input[type!=\"checkbox\"][type!=\"radio\"], input:checked";
+    var selector = ":input[type!=\"checkbox\"][type!=\"radio\"][type!=\"button\"], input:checked";
     var parse = function() {
 
       // Ignore disabled elements
@@ -244,18 +246,20 @@ class StesiTable {
       // Ensure that only elements with valid `name` properties will be serialized
       if ( named[ 0 ] ) {
         for ( var i = 0; i < cap; i++ ) {
+				
           // move down the tree - create objects or array if necessary
           lookup = lookup[ named[i] ] = lookup[ named[i] ] ||
-            ( (named[ i + 1 ] === "" || named[ i + 1 ] === "0") ? [] : {} );
+            ( (named[ i + 1 ] === "" || named[ i + 1 ] === "0") ? $el.val() : {} );
         }
 
         // at the end, push or assign the value
         if ( lookup.length !==  undefined ) {
-          lookup.push( $el.val() );
+          //lookup.push( $el.val() );
         }else {
           lookup[ named[ cap ] ]  = $el.val();
         }
 
+		
         // assign the reference back to root
         lookup = data;
       }
@@ -271,6 +275,8 @@ class StesiTable {
     return data;
   };
 			
+	
+			        		
 				var datatable=$("#' . $this->id . '").DataTable({
 	       processing: true,
 			keys: true,
@@ -322,6 +328,8 @@ class StesiTable {
 			            }
 			          
 			        });
+			        		
+			     
 			},			        		
 			createdRow: function(row,data,index){';
 		foreach ( $tableColums as $column ) {
@@ -398,7 +406,18 @@ class StesiTable {
                 }
             });
         }	
-				
+					 $('#" . $this->id . "_form input').unbind();
+			        $('#" . $this->id . "_form input').bind('keyup', function(e) {
+			          if(e.keyCode == 13 || (e.keyCode==8 && this.value=='')) {
+			        	  datatable.draw();
+			            }
+			          
+			        });
+			        		
+			        $('#filter_button').bind('click', function(e) {
+			          	e.preventDefault();
+			        	datatable.draw();
+			        });
 				</script>";
 		return $table;
 	}
