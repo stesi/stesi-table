@@ -76,6 +76,7 @@ class StesiTable {
 	public function addColumn(StesiColumn $stesiColumn){
 		$this->columns [$stesiColumn->getColumnName()]=$stesiColumn;
 		if($this->form){
+			if($stesiColumn->getColumnType()!=StesiColumnType::Button){
 			//Se è settato a true, creo un elemento della form instanziando dinamicamente un elemento PFBC e aggiungendolo alla form
 			$class=new \ReflectionClass(
 					"PFBC\Element\\".(array_flip((new \ReflectionClass("Stesi\StesiTable\StesiColumnType"))->getConstants())[$stesiColumn->getColumnType()]));
@@ -83,6 +84,7 @@ class StesiTable {
 				throw new \Exception("PFBC class ".$class." not found");
 			$instance = $class->newInstanceArgs(array($stesiColumn->getColumnDescription(), $stesiColumn->getColumnName(), $stesiColumn->getOptions(),$stesiColumn->getProperties()));
 			$this->form->addElement($instance);			
+			}
 		}
 		return $this->columns [$stesiColumn->getColumnName()];
 	}
@@ -161,11 +163,13 @@ class StesiTable {
 		$tableColumnsNames = array ();
 		
 		foreach ( $this->columns as $column ) {
-			if (! $onlyGlobalSerchable)
-				$tableColumnsNames [] = $column->getColumnName ();
-			else {
-				if ($column->isGlobalSerchable ())
+			if($column->getColumnType()!=StesiColumnType::Button){
+				if (! $onlyGlobalSerchable)
 					$tableColumnsNames [] = $column->getColumnName ();
+				else {
+					if ($column->isGlobalSerchable ())
+						$tableColumnsNames [] = $column->getColumnName ();			
+				}
 			}
 		}
 		return $tableColumnsNames;
@@ -279,6 +283,7 @@ class StesiTable {
 			        		
 				var datatable=$("#' . $this->id . '").DataTable({
 	       processing: true,
+			
 			keys: true,
 			ordering:true,
 			bSortable:true,
@@ -289,6 +294,22 @@ class StesiTable {
 	        scrollX:        true,
 	        fixedHeader:   true,
 			serverSide : true,
+			  "dom": "<\"pull-left\"B>ftl<\"pull-left\"i>p",
+    buttons: [
+        "copyHtml5","print","colvis",
+		  {
+				
+                text: "My button",
+				class: "my_button",
+				init : function (e, dt){
+						dt.context.id="123";
+				},
+                action: function ( e, dt, node, config ) {
+						
+                    alert( "Button activated" );
+                }
+            }
+    ],
         	"language": {
         	    "search": "Ricerca Globale",
         	    "lengthMenu": "Elem.per pagina _MENU_ ",
@@ -306,11 +327,19 @@ class StesiTable {
   }';
 		//$("#'.$this->id.'_form").serialize();
 		$table .= ',columns:[';
+		$buttonsFunction=array();
 		/*
 		 * Create column dinamically with custom class that has the same name of column, data with columnName without point (ex ArticoliNatura), name with columnName with point (ex Articoli.Natura)
 		 * */
 		foreach ( $tableColums as $column ) {
-			$table .= '{ "class": "' . $column->getColumnName ( false ) . '","data": "' . $column->getColumnName ( false ) . '","name":"'.$column->getColumnName(true).'" },';
+			if($column->getColumnType()==StesiColumnType::Button){
+				$table .= '{ 						
+								"data": "null",
+								"defaultContent":"<button class=\"'.$column->getColumnName(false).'\">'.$column->getColumnDescription().'</button>" },';
+							array_push($buttonsFunction,array("class"=>$column->getColumnName(false),"function"=>$column->getJsButtonCallback()));
+			}else{
+				$table .= '{ "class": "' . $column->getColumnName ( false ) . '","data": "' . $column->getColumnName ( false ) . '","name":"'.$column->getColumnName(true).'" },';
+			}
 		}
 		
 		/*
@@ -327,9 +356,9 @@ class StesiTable {
 			        	  api.search( this.value ).draw();
 			            }
 			          
-			        });
-			        		
-			     
+			        });';
+			        	
+			     $table.='
 			},			        		
 			createdRow: function(row,data,index){';
 		foreach ( $tableColums as $column ) {
@@ -365,7 +394,14 @@ class StesiTable {
 	
 			
 				';
-		
+		if(!empty($buttonsFunction)){
+			foreach($buttonsFunction as $external){
+				$table.="
+							$('#".$this->id." tbody').on('click','button.".$external['class']."',function(){
+									".$external['function']."();
+											});";
+			}
+		}
 		
 		/*
 		 * Column Reorderable function:
@@ -413,12 +449,15 @@ class StesiTable {
 			            }
 			          
 			        });
-			        		
+			        
 			        $('#filter_button').bind('click', function(e) {
 			          	e.preventDefault();
 			        	datatable.draw();
-			        });
-				</script>";
+			        });";
+			        		
+	
+		
+		$table.="</script>";
 		return $table;
 	}
 	
@@ -429,4 +468,81 @@ class StesiTable {
 		}
 		return "";
 	}
+}
+
+class StesiTableButtons{
+	private $text;
+	private $action;
+	private $class;
+	private $id;
+	
+	function __construct($id){
+		$this->id=$id;
+	}
+	
+	public function getId(){
+		return $this->id;
+	}
+	
+	/**
+	 * text
+	 * @return unkown
+	 */
+	public function getText(){
+		return $this->text;
+	}
+	
+	/**
+	 * text
+	 * @param unkown $text
+	 * @return StesiTable
+	 */
+	public function setText($text){
+		$this->text = $text;
+		return $this;
+	}
+	
+	/**
+	 * action
+	 * @return unkown
+	 */
+	public function getAction(){
+		return $this->action;
+	}
+	
+	/**
+	 * action
+	 * @param unkown $action
+	 * @return StesiTable
+	 */
+	public function setAction($action){
+		$this->action = $action;
+		return $this;
+	}
+	
+	/**
+	 * class
+	 * @return unkown
+	 */
+	public function getClass(){
+		return $this->class;
+	}
+	
+	/**
+	 * class
+	 * @param unkown $class
+	 * @return StesiTable
+	 */
+	public function setClass($class){
+		$this->class = $class;
+		return $this;
+	}
+	
+}
+
+class DataTableButtons{
+
+	const copyHtml5=1;
+	const print=2;
+	const colvis=3;
 }
