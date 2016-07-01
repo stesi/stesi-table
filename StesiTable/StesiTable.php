@@ -235,7 +235,9 @@ class StesiTable {
 					"class" => "btn-primary" 
 			) ) );
 		}
-		$table = "<table id=\"" . $this->id . "\" cellspacing=\"0\" width=\"100%\">";
+		$table = "
+				<table id=\"" . $this->id . "\"  class='table-striped table-bordered table-hover  dataTable nowrap' cellspacing='0'
+                   width='100%'>";
 		
 		$tableColums = $this->getColumns ();
 		$th = "<tr>";
