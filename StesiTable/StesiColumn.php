@@ -7,9 +7,9 @@ class StesiColumn {
 	private $globalSearcheable;
 	private $stesiColumnStyles;
 	private $columnType;
-	private $stesiColumnValue;
 	private $options;
 	private $properties;
+	private $jsFunction;
 
 
 	/**
@@ -94,14 +94,6 @@ class StesiColumn {
 	}
 
 	/**
-	 * stesiColumnValue return array of default value
-	 * @return array
-	 */
-	public function getStesiColumnValue(){
-		return $this->stesiColumnValue;
-	}
-
-	/**
 	 * Take in input a list of options to use in a select\multiselect column type
 	 * @param array $options
 	 */
@@ -130,6 +122,20 @@ class StesiColumn {
 	public function getProperties(){
 		return $this->properties;
 	}
+	/**
+	 * If column is define as a button, you have to define the jsFunction to call after click
+	 * @param string $jsFunction
+	 * 
+	 * @return StesiColumn
+	 */
+	public function setJsButtonCallback($jsFunction){
+		$this->jsFunction=$jsFunction;
+	}
+	
+	
+	public function getJsButtonCallback(){
+		return $this->jsFunction;
+	}
 
 }
 /**
@@ -146,6 +152,7 @@ class StesiColumnType
 	const Date=4;
 	const DateTime=5;
 	const TextArea=6;
+	const Button=7;
 }
 /**
  * Define style of the column of the DataTable
