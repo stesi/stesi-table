@@ -462,7 +462,7 @@ class StesiTable {
 		if ($this->isColReorderable) {
 			$table .= "
 			new $.fn.dataTable.ColReorder(datatable,{
-				realtime: false";
+				realtime: true";
 			if (! empty ( $this->columnOrder )) {
 				$table .= ",order: [" . implode ( ",", $this->columnOrder ) . "]";
 			}
