@@ -257,8 +257,9 @@ class StesiTable {
 	 * @param string $buttonName        	
 	 * @return StesiTable
 	 */
-	public function addDatatableButton($buttonName) {
-		$this->datatableButtons [] = $buttonName;
+	public function addDatatableButton($buttonName,$htmlText=null,$tooltip=null) {
+		$this->datatableButtons [] = array("name"=>$buttonName,"text"=>$htmlText,
+				"titleAttr"=>$tooltip);
 		return $this;
 	}
 	public function getDatatableButtons() {
@@ -401,7 +402,8 @@ class StesiTable {
 		$table .= '
         ],
 				initComplete: function() {
-						var api = this.api();				  
+						var api = this.api();
+				
 				  $("#' . $this->id . '_filter input").unbind();
 			        $("#' . $this->id . '_filter input").bind("keyup", function(e) {
 			          if(e.keyCode == 13 || (e.keyCode==8 && this.value=="")) {
@@ -483,6 +485,14 @@ class StesiTable {
 			});";
 		}
 		$table .= "
+		 $('#".$this->id." tbody')
+        .on( 'mouseenter', 'td', function () {
+            var colIdx = datatable.cell(this).index().column;
+ 
+            $( datatable.cells().nodes() ).removeClass( 'highlight' );
+            $( datatable.column( colIdx ).nodes() ).addClass( 'highlight' );
+        } );
+				
 					 // Restore state
         var state = datatable.state.loaded();
         if (state) {
@@ -514,7 +524,16 @@ class StesiTable {
 		if (! empty ( $this->getDatatableButtons () ) || ! empty ( $this->getStesiButtons () )) {
 			$buttons="";
 			foreach ( $this->getDatatableButtons () as $datatableButton ) {
-				$buttons .= ",'" . $datatableButton . "'";
+				if(empty($datatableButton['text']) && empty($datatableButton['titleAttr'])){
+					$buttons .= ",'" . $datatableButton['name'] . "'";
+				}else{
+					$buttons.=",{
+							extend: '".$datatableButton['name']."',
+							text: '".$datatableButton['text']."',
+							titleAttr:'".$datatableButton['titleAttr']."'
+							}";
+				}
+				
 			}
 			foreach ( $this->getStesiButtons() as $stesiButton ) {
 				$text = ! empty ( $stesiButton->getText () ) ? $stesiButton->getText () : $stesiButton->getId ();
