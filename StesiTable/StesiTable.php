@@ -6,7 +6,6 @@ use PFBC\Form;
 use PFBC;
 use PFBC\Element\Button;
 
-
 /**
  * Class that manage Datatable
  *
@@ -310,7 +309,7 @@ class StesiTable {
 				
           // move down the tree - create objects or array if necessary
           lookup = lookup[ named[i] ] = lookup[ named[i] ] ||
-            ( (named[ i + 1 ] === "" || named[ i + 1 ] === "0") ? $el.val() : {} );
+            ( (named[ i + 1 ] === "" || named[ i + 1 ] === "0") ? ($el.val()==null?[]:el.val()) : {} );
         }
 
         // at the end, push or assign the value
@@ -505,7 +504,8 @@ class StesiTable {
                 }
             });
         }	
-					 $('#" . $this->id . "_form input').unbind();
+
+			       $('#" . $this->id . "_form input').unbind();
 			        $('#" . $this->id . "_form input').bind('keyup', function(e) {
 			          if(e.keyCode == 13 || (e.keyCode==8 && this.value=='')) {
 			        	  datatable.draw();
