@@ -103,12 +103,16 @@ class StesiColumn {
 		return $this;
 	}
 	
-	public function getColumnData(){
+	public function getColumnData($dot=false){
 		
 		if(!empty($this->alias))
 			return $this->alias;
-		else 
-			return str_replace ( ".", "", $this->columnName );
+		else {
+			if(!$dot){
+				return str_replace ( ".", "", $this->columnName );
+			}else 
+				$this->columnName;
+		}
 	}
 	/**
 	 * Add an array of option used in PFBC column
