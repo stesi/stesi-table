@@ -6,7 +6,6 @@ use PFBC\Form;
 use PFBC;
 use PFBC\Element\Button;
 
-
 /**
  * Class that manage Datatable
  *
@@ -95,7 +94,7 @@ class StesiTable {
 					throw new \Exception ( "PFBC class " . $class . " not found" );
 				$instance = $class->newInstanceArgs ( array (
 						$stesiColumn->getColumnDescription (),
-						$stesiColumn->getColumnName (),
+						$stesiColumn->getColumnData(true),
 						$stesiColumn->getOptions (),
 						$stesiColumn->getProperties () 
 				) );
