@@ -184,11 +184,12 @@ class StesiTable {
 		
 		foreach ( $this->columns as $column ) {
 			if ($column->getColumnType () != StesiColumnType::Button) {
-				if (! $onlyGlobalSerchable)
-					$tableColumnsNames [] = $column->getColumnName ();
+				if (! $onlyGlobalSerchable){
+					$tableColumnsNames [] = array("name"=>$column->getColumnName (),"alias"=>$column->getAlias());
+				}
 				else {
 					if ($column->isGlobalSerchable ())
-						$tableColumnsNames [] = $column->getColumnName ();
+						$tableColumnsNames [] = array("name"=>$column->getColumnName (),"alias"=>$column->getAlias());
 				}
 			}
 		}
@@ -397,7 +398,7 @@ class StesiTable {
 						"function" => $column->getJsButtonCallback () 
 				) );
 			} else {
-				$table .= '{ "class": "' . $column->getColumnName ( false ) . '","data": "' . $column->getColumnName ( false ) . '","name":"' . $column->getColumnName ( true ) . '" },';
+				$table .= '{ "class": "' . $column->getColumnData() . '","data": "' . $column->getColumnData() . '","name":"' . $column->getColumnData() . '" },';
 			}
 		}
 		
@@ -432,9 +433,9 @@ class StesiTable {
 				 * Ex data['natura']='MDR'
 				 * EX data['id_articolo']>'10000'
 				 */
-				$table .= "if(data['" . $column->getColumnName ( false ) . "']" . $columnStyle->getConditionOperator () . "'" . $columnStyle->getValue () . "'){";
+				$table .= "if(data['" . $column->getColumnData() . "']" . $columnStyle->getConditionOperator () . "'" . $columnStyle->getValue () . "'){";
 				$table .= '
-							$("td.' . $column->getColumnName ( false ) . '", row)';
+							$("td.' . $column->getColumnData() . '", row)';
 				if (count ( $columnStyle->getClasses () ) > 0) {
 					$table .= '.addClass("' . implode ( " ", $columnStyle->getClasses () ) . '")';
 				}
