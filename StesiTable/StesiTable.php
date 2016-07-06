@@ -350,7 +350,6 @@ class StesiTable {
     // then parse possible child elements
     this.find( selector ).each( parse );
 
-	console.log(data);
     // return data
     return data;
   };
