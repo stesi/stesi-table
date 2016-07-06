@@ -275,6 +275,12 @@ class StesiTable {
 		$this->stesiTableButtons [] = $stesiButton;
 		return $this;
 	}
+	
+	public function setStesiButtons(array $stesiButtons) {
+		$this->stesiTableButtons= $stesiButtons;
+		return $this;
+	}
+	
 	public function getStesiButtons() {
 		return $this->stesiTableButtons;
 	}
@@ -309,7 +315,7 @@ class StesiTable {
 				
           // move down the tree - create objects or array if necessary
           lookup = lookup[ named[i] ] = lookup[ named[i] ] ||
-            ( (named[ i + 1 ] === "" || named[ i + 1 ] === "0") ? ($el.val()==null?[]:el.val()) : {} );
+            ( (named[ i + 1 ] === "" || named[ i + 1 ] === "0") ? ($el.val()==null?[]:$el.val()) : {} );
         }
 
         // at the end, push or assign the value
@@ -546,7 +552,7 @@ class StesiTable {
 					";
 				$class = $stesiButton->getClass ();
 				if (! empty ( $class )) {
-					$buttons .= ",class:'" . $class . "'";
+					$buttons .= ",className:'" . $class . "'";
 				}
 				$action = $stesiButton->getAction ();
 				if (! empty ( $action )) {
@@ -591,7 +597,7 @@ class StesiTableButton {
 	 * text
 	 * 
 	 * @param unkown $text        	
-	 * @return StesiTable
+	 * @return StesiTableButton
 	 */
 	public function setText($text) {
 		$this->text = $text;
@@ -611,7 +617,7 @@ class StesiTableButton {
 	 * action
 	 * 
 	 * @param unkown $action        	
-	 * @return StesiTable
+	 * @return StesiTableButton
 	 */
 	public function setAction($action) {
 		$this->action = $action;
@@ -631,7 +637,7 @@ class StesiTableButton {
 	 * class
 	 * 
 	 * @param unkown $class        	
-	 * @return StesiTable
+	 * @return StesiTableButton
 	 */
 	public function setClass($class) {
 		$this->class = $class;
