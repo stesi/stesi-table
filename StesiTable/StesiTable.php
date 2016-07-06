@@ -47,7 +47,7 @@ class StesiTable {
 	private $form;
 	private $datatableButtons;
 	private $stesiTableButtons;
-	
+	private $filterFormName;
 	/**
 	 *
 	 * @param int $id        	
@@ -61,7 +61,19 @@ class StesiTable {
 		$this->datatableButtons = array ();
 		if ($useForm) {
 			$this->form = new Form ( $this->id . "_form" );
+			$this->filterFormName="filter";
 		}
+	}
+	/**
+	 * 
+	 * @param string $filterFormName
+	 * return @StesiTable
+	 */
+	public function setFilterFormName($filterFormName){
+		$this->filterFormName=$filterFormName;
+	}
+	public function getFilterFormName(){
+		return $this->filterFormName;
 	}
 	
 	/**
@@ -338,6 +350,7 @@ class StesiTable {
     // then parse possible child elements
     this.find( selector ).each( parse );
 
+	console.log(data);
     // return data
     return data;
   };
@@ -378,7 +391,7 @@ class StesiTable {
     "url": "' . $ajaxCallBack . '",
     type:"POST",
     data: function ( d ) {
-      	d.filter=$("#' . $this->id . '_form").serializeForm();
+      	d.'.$this->filterFormName.'=$("#' . $this->id . '_form").serializeForm();
     		
 	}
   }';
