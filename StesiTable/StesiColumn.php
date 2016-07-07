@@ -111,7 +111,7 @@ class StesiColumn {
 			if(!$dot){
 				return str_replace ( ".", "", $this->columnName );
 			}else 
-				$this->columnName;
+				return $this->columnName;
 		}
 	}
 	/**

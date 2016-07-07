@@ -316,7 +316,6 @@ class StesiTable {
       if (this.disabled) {
         return;
       }
-
       // data[a][b] becomes [ data, a, b ]
       var named = this.name.replace(/\[([^\]]+)?\]/g, ",$1").split(",");
       var cap = named.length - 1;
@@ -348,8 +347,7 @@ class StesiTable {
     this.filter( selector ).each( parse );
 
     // then parse possible child elements
-    this.find( selector ).each( parse );
-
+    this.find( selector ).each( parse );	
     // return data
     return data;
   };
