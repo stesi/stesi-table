@@ -211,7 +211,7 @@ class StesiColumnStyle {
 	private $value;
 	private $classes;
 	private $css;
-	
+	private $html;
 	/**
 	 *
 	 * @param string $conditionOperator
@@ -223,6 +223,7 @@ class StesiColumnStyle {
 		$this->operator = ($conditionOperator == "=" ? "==" : $conditionOperator);
 		$this->value = $value;
 		$this->css = array ();
+		$this->html = array ();
 		$this->classes = array ();
 	}
 	
@@ -239,6 +240,21 @@ class StesiColumnStyle {
 				"value" => $value 
 		);
 		return $this;
+	}
+	
+	/**
+	 * Add html to the column
+	 *
+	 * @param string $propertyName
+	 * @param string $value
+	 * @return \Stesi\StesiTable\StesiColumnStyle
+	 */
+	function addHtml($value) {
+		$this->html [] = array ($value);
+		return $this;
+	}
+	function getHtml() {
+		return $this->html;
 	}
 	/**
 	 * Add class to the column

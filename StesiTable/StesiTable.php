@@ -455,6 +455,12 @@ class StesiTable {
 						$table .= '.css("' . $css ["propertyName"] . '","' . $css ['value'] . '")';
 					}
 				}
+				if (count ( $columnStyle->getHtml () ) > 0) {
+					foreach ( $columnStyle->getHtml () as $html) {
+				
+						$table .= '.html("' . $html.'")';
+					}
+				}
 				$table .= ";
 					}";
 			}
