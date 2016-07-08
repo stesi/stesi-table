@@ -431,45 +431,11 @@ class StesiTable {
 		
 		$table .= '
 			},			        		
-			createdRow: function(row,data,index){';
-		foreach ( $tableColums as $column ) {
-			/*
-			 * Apply column styles dinamically to each column
-			 */
-			$columnStyles = $column->getColumnStyles ();
-			foreach ( $columnStyles as $columnStyle ) {
-				/*
-				 * Using column Operator and Value to determine if the style is applicable
-				 * Ex data['natura']='MDR'
-				 * EX data['id_articolo']>'10000'
-				 */
-				$table .= "if(data['" . $column->getColumnData() . "']" . $columnStyle->getConditionOperator () . "'" . $columnStyle->getValue () . "'){";
-				$table .= '
-							$("td.' . $column->getColumnData() . '", row)';
-				if (count ( $columnStyle->getClasses () ) > 0) {
-					$table .= '.addClass("' . implode ( " ", $columnStyle->getClasses () ) . '")';
-				}
-				if (count ( $columnStyle->getCss () ) > 0) {
-					foreach ( $columnStyle->getCss () as $css ) {
-						
-						$table .= '.css("' . $css ["propertyName"] . '","' . $css ['value'] . '")';
-					}
-				}
-				if (count ( $columnStyle->getHtml () ) > 0) {
-					foreach ( $columnStyle->getHtml () as $html) {
-				
-						$table .= '.html("' . $html.'")';
-					}
-				}
-				$table .= ";
-					}";
+			createdRow: function(row,data,index){
+				applyStyles(row,data);
 			}
-		}
-		
-		$table .= '}
 	});
 	
-			
 				';
 		if (! empty ( $buttonsFunction )) {
 			foreach ( $buttonsFunction as $external ) {
@@ -502,11 +468,17 @@ class StesiTable {
 	             						dataTableId: '" . $this->id . "'
 									}
 								});
+	             		datatable.rows().every( function () {
+	             				applyStyles(this.node(),this.data());		
+	             		} );
 	             	}";
 			}
 			$table .= "
-			});";
+			});
+			
+			";
 		}
+		$table.=$this->createFunctionColumnStyles();
 		$table .= "
 		 $('#".$this->id." tbody')
         .on( 'mouseenter', 'td', function () {
@@ -544,6 +516,53 @@ class StesiTable {
 		$table .= "</script>";
 		return $table;
 	}
+	
+	private function createFunctionColumnStyles(){
+	
+		$script="function applyStyles(row,data)
+		{
+				";
+		$tableColums = $this->getColumns ();
+		foreach ( $tableColums as $column ) {
+		/*
+		* Apply column styles dinamically to each column
+		*/
+		$columnStyles = $column->getColumnStyles ();
+		foreach ( $columnStyles as $columnStyle ) {
+		/*
+		* Using column Operator and Value to determine if the style is applicable
+		* Ex data['natura']='MDR'
+		* EX data['id_articolo']>'10000'
+		*/
+		$script .= "if(data['" . $column->getColumnData() . "']" . $columnStyle->getConditionOperator () . "'" . $columnStyle->getValue () . "'){";
+		$script .= '
+		$("td.' . $column->getColumnData() . '", row)';
+		if (count ( $columnStyle->getClasses () ) > 0) {
+		$script .= '.addClass("' . implode ( " ", $columnStyle->getClasses () ) . '")';
+		}
+		if (count ( $columnStyle->getCss () ) > 0) {
+		foreach ( $columnStyle->getCss () as $css ) {
+			
+		$script .= '.css("' . $css ["propertyName"] . '","' . $css ['value'] . '")';
+		}
+		}
+		if (count ( $columnStyle->getHtml () ) > 0) {
+		foreach ( $columnStyle->getHtml () as $html) {
+			
+		$script .= '.html("' . $html.'")';
+		}
+		}
+		if(!empty($columnStyle->getPClass())){
+		$script .= '.html("<p class=\''.$columnStyle->getPClass().'\' style=\'width:100%\'>"+ data[\'' . $column->getColumnData() . '\']+"</p>")';
+		}
+		$script .= ";}
+				";	
+		}
+		}
+		$script.="}";
+		return $script;
+	}
+	
 	private function inizializeButtons() {
 		if (! empty ( $this->getDatatableButtons () ) || ! empty ( $this->getStesiButtons () )) {
 			$buttons="";
@@ -588,7 +607,9 @@ class StesiTable {
 		}
 		return "";
 	}
+	
 }
+
 class StesiTableButton {
 	private $text;
 	private $action;

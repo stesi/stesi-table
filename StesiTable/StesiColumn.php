@@ -212,6 +212,7 @@ class StesiColumnStyle {
 	private $classes;
 	private $css;
 	private $html;
+	private $pClass;
 	/**
 	 *
 	 * @param string $conditionOperator
@@ -224,7 +225,7 @@ class StesiColumnStyle {
 		$this->value = $value;
 		$this->css = array ();
 		$this->html = array ();
-		$this->classes = array ();
+		$this->classes = array ();		
 	}
 	
 	/**
@@ -256,6 +257,20 @@ class StesiColumnStyle {
 	function getHtml() {
 		return $this->html;
 	}
+	
+	/**
+	 * Add class paragraph to the column
+	 * @param $value class into paragraph (ex. label-danger)
+	 * @return \Stesi\StesiTable\StesiColumnStyle
+	 */
+	function setPClass($value) {
+		$this->pClass=$value;
+		return $this;
+	}
+	function getPClass() {
+		return $this->pClass;
+	}
+	
 	/**
 	 * Add class to the column
 	 *
