@@ -38,6 +38,7 @@ class StesiTable {
 	 */
 	private $isColReorderable;
 	
+	
 	/**
 	 * array of table columns id separated by comma
 	 * 
@@ -48,13 +49,14 @@ class StesiTable {
 	private $datatableButtons;
 	private $stesiTableButtons;
 	private $filterFormName;
+	private $globalFilter;
 	/**
 	 *
 	 * @param int $id        	
 	 * @param boolean $useForm
 	 *        	if true, use PFBC Form
 	 */
-	function __construct($id, $useForm = false) {
+	function __construct($id, $useForm = false,$globalFilterText="") {
 		$this->id = $id;
 		$this->isColReorderable = false;
 		$this->customButtons = array ();
@@ -63,7 +65,10 @@ class StesiTable {
 			$this->form = new Form ( $this->id . "_form" );
 			$this->filterFormName="filter";
 		}
+		$this->globalFilter=$globalFilterText;
+		
 	}
+	
 	/**
 	 * 
 	 * @param string $filterFormName
@@ -420,7 +425,6 @@ class StesiTable {
         ],
 				initComplete: function() {
 						var api = this.api();
-				
 				  $("#' . $this->id . '_filter input").unbind();
 			        $("#' . $this->id . '_filter input").bind("keyup", function(e) {
 			          if(e.keyCode == 13 || (e.keyCode==8 && this.value=="")) {
@@ -534,7 +538,8 @@ class StesiTable {
 		* Ex data['natura']='MDR'
 		* EX data['id_articolo']>'10000'
 		*/
-		$script .= "if(data['" . $column->getColumnData() . "']" . $columnStyle->getConditionOperator () . "'" . $columnStyle->getValue () . "'){";
+		$script .= "
+				if(data['" . $column->getColumnData() . "']" . $columnStyle->getConditionOperator () . "'" . $columnStyle->getValue () . "'){";
 		$script .= '
 		$("td.' . $column->getColumnData() . '", row)';
 		if (count ( $columnStyle->getClasses () ) > 0) {
