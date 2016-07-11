@@ -12,6 +12,7 @@ class StesiColumn {
 	private $properties;
 	private $jsFunction;
 	private $alias;
+	private $text;
 	
 	/**
 	 *

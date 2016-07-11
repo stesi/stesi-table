@@ -49,14 +49,14 @@ class StesiTable {
 	private $datatableButtons;
 	private $stesiTableButtons;
 	private $filterFormName;
-	private $globalFilter;
+	private $globalFilter="";
 	/**
 	 *
 	 * @param int $id        	
 	 * @param boolean $useForm
 	 *        	if true, use PFBC Form
 	 */
-	function __construct($id, $useForm = false,$globalFilterText="") {
+	function __construct($id, $useForm = false) {
 		$this->id = $id;
 		$this->isColReorderable = false;
 		$this->customButtons = array ();
@@ -64,9 +64,7 @@ class StesiTable {
 		if ($useForm) {
 			$this->form = new Form ( $this->id . "_form" );
 			$this->filterFormName="filter";
-		}
-		$this->globalFilter=$globalFilterText;
-		
+		}		
 	}
 	
 	/**
@@ -423,7 +421,9 @@ class StesiTable {
 		 */
 		$table .= '
         ],
+				
 				initComplete: function() {
+				
 						var api = this.api();
 				  $("#' . $this->id . '_filter input").unbind();
 			        $("#' . $this->id . '_filter input").bind("keyup", function(e) {
@@ -431,15 +431,19 @@ class StesiTable {
 			        	  api.search( this.value ).draw();
 			            }
 			          
-			        });';
-		
-		$table .= '
+			        });
+			       ';
+					if(!empty($this->globalFilter)){
+			      		$table.='
+			      				
+			      				$("#' . $this->id . '_filter input").val("'.$this->globalFilter.'");';
+					}
+			        $table.='
 			},			        		
 			createdRow: function(row,data,index){
 				applyStyles(row,data);
 			}
 	});
-	
 				';
 		if (! empty ( $buttonsFunction )) {
 			foreach ( $buttonsFunction as $external ) {
@@ -613,6 +617,24 @@ class StesiTable {
 		return "";
 	}
 	
+	/**
+	 * globalFilter
+	 * @return string
+	 */
+	public function getGlobalFilter(){
+		return $this->globalFilter;
+	}
+	
+	/**
+	 * globalFilter
+	 * @param string $globalFilter
+	 * @return StesiTable
+	 */
+	public function setGlobalFilter($globalFilter){
+		$this->globalFilter = $globalFilter;
+		return $this;
+	}
+	
 }
 
 class StesiTableButton {
@@ -686,4 +708,7 @@ class StesiTableButton {
 		$this->class = $class;
 		return $this;
 	}
+
+   
+
 }
