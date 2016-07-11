@@ -13,7 +13,7 @@ class StesiColumn {
 	private $jsFunction;
 	private $alias;
 	private $text;
-	
+	private $dataAttributes=array();
 	/**
 	 *
 	 * @param string $columnName
@@ -35,8 +35,16 @@ class StesiColumn {
 		$this->alias = null;
 		$this->options = array ();
 		$this->properties = array ();
+		$this->attributes=array();
 	}
 	
+	public function getDataAttributes(){
+		return $this->dataAttributes;
+	}
+	
+	public function addDataAttributes($attributeKey,$attributeValue){
+		$this->dataAttributes[$attributeKey]=$attributeValue;
+	}
 	/**
 	 *
 	 * @param boolean $dot
@@ -131,12 +139,12 @@ class StesiColumn {
 	}
 	/**
 	 *
-	 * @param string $conditionOperator        	
+	 * @param string $conditionOperator if it is set to null, the style is apply on each column
 	 * @param string $value        	
 	 * @return StesiColumnStyle $stesiColumnStyle
 	 */
-	public function addColumnStyle($conditionOperator, $value) {
-		$stesiColumnStyle = new StesiColumnStyle ( $conditionOperator, $value );
+	public function addColumnStyle($conditionOperator=null, $value=null,$otherColumnId=null) {
+		$stesiColumnStyle = new StesiColumnStyle ( $conditionOperator, $value,$otherColumnId );
 		$this->stesiColumnStyles [] = $stesiColumnStyle;
 		return $stesiColumnStyle;
 	}
@@ -214,19 +222,33 @@ class StesiColumnStyle {
 	private $css;
 	private $html;
 	private $pClass;
+	private $otherColumnId;
+	private $visibility=true;
+	private $icon="";
+	
 	/**
 	 *
 	 * @param string $conditionOperator
 	 *        	operator used to apply the condition Example '=','>','<'
 	 * @param string $value
 	 *        	value of the expression example 1000
+	 * @param string $otherColumnId id of column used to apply condition
 	 */
-	function __construct($conditionOperator, $value) {
+	function __construct($conditionOperator=null, $value=null,$otherColumnId=null) {
 		$this->operator = ($conditionOperator == "=" ? "==" : $conditionOperator);
 		$this->value = $value;
 		$this->css = array ();
 		$this->html = array ();
 		$this->classes = array ();		
+		$this->otherColumnId=!empty($otherColumnId)?str_replace ( ".", "", $otherColumnId ):null;
+	}
+	
+	function getIcon(){
+		return $this->icon;
+	}
+	
+	function setIcon($icon){
+		$this->icon=$icon;
 	}
 	
 	/**
@@ -245,6 +267,18 @@ class StesiColumnStyle {
 	}
 	
 	/**
+	 * 
+	 * @param boolean $visibility if false, set hidden prop to data column where data satisfy the condition
+	 */
+	function setVisibility($visibility){
+		$this->visibility=$visibility;
+		return $this;
+	}
+	function getVisibility(){
+		return $this->visibility;
+	}
+	
+	/**
 	 * Add html to the column
 	 *
 	 * @param string $propertyName
@@ -252,7 +286,7 @@ class StesiColumnStyle {
 	 * @return \Stesi\StesiTable\StesiColumnStyle
 	 */
 	function addHtml($value) {
-		$this->html [] = array ($value);
+		$this->html [] = $value;
 		return $this;
 	}
 	function getHtml() {
@@ -294,4 +328,23 @@ class StesiColumnStyle {
 	function getValue() {
 		return $this->value;
 	}
+
+    /**
+     * otherColumnId
+     * @return string
+     */
+    public function getOtherColumnId(){
+        return $this->otherColumnId;
+    }
+
+    /**
+     * otherColumnId
+     * @param string $otherColumnId
+     * @return StesiColumn
+     */
+    public function setOtherColumnId($otherColumnId){
+        $this->otherColumnId = $otherColumnId;
+        return $this;
+    }
+
 }
