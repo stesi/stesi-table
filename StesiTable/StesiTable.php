@@ -590,7 +590,7 @@ class StesiTable {
 			foreach ( $this->getStesiButtons() as $stesiButton ) {
 				$text = ! empty ( $stesiButton->getText () ) ? $stesiButton->getText () : $stesiButton->getId ();
 				$buttons .= ",{
-					text:'" . $text . "',
+					text:'" . $text . "',					
 					init :function (e,dt){
 						dt.context.id='" . $stesiButton->getId () . "'		
 					}
@@ -598,6 +598,11 @@ class StesiTable {
 				$class = $stesiButton->getClass ();
 				if (! empty ( $class )) {
 					$buttons .= ",className:'" . $class . "'";
+				}
+				
+				$tooltip=$stesiButton->getTooltip();
+				if(!empty($tooltip)){
+					$buttons.=",titleAttr:'".$tooltip."'";
 				}
 				$action = $stesiButton->getAction ();
 				if (! empty ( $action )) {
@@ -642,6 +647,7 @@ class StesiTableButton {
 	private $action;
 	private $class;
 	private $id;
+	private $tooltip;
 	function __construct($id) {
 		$this->id = $id;
 	}
@@ -710,5 +716,24 @@ class StesiTableButton {
 	}
 
    
+
+
+    /**
+     * tooltip
+     * @return string
+     */
+    public function getTooltip(){
+        return $this->tooltip;
+    }
+
+    /**
+     * tooltip
+     * @param string $tooltip
+     * @return StesiTable
+     */
+    public function setTooltip($tooltip){
+        $this->tooltip = $tooltip;
+        return $this;
+    }
 
 }
