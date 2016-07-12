@@ -413,11 +413,11 @@ class StesiTable {
 				
 				
 				$table .= '{ 	
-						"class": "' . $column->getColumnData () . '",
-								"data": "null",
+						"class":"' . $column->getColumnData () . '",
+						"data": "null",
 						"orderable": "false",
 								"defaultContent":
-						"<button></button>" },';
+						"<button class=\"' . $column->getColumnData () . '\"></button>" },';
 				if(!empty($column->getJsButtonCallback())){
 					array_push ( $buttonsFunction, array (
 							"class" => $column->getColumnName ( false ),
@@ -463,7 +463,7 @@ class StesiTable {
 			foreach ( $buttonsFunction as $external ) {
 				$table .= "
 							$('#" . $this->id . " tbody').on('click','button." . $external ['class'] . "',function(){
-									" . $external ['function'] . "();
+									" . $external ['function'] . "(this);
 											});";
 			}
 		}
@@ -544,15 +544,16 @@ class StesiTable {
 
 			$scriptStyle="";
 			$selector='$("td.' . $column->getColumnData () . ' ", row)';
-		
-				
-			foreach($column->getDataAttributes() as $key=>$value) {
-				$scriptStyle .= $selector.'.data("'.$key.'",data["'.$value.'"]);';
-			}		
-			
 			if($column->getColumnType()==StesiColumnType::Button){
 				$selector='$("td.' . $column->getColumnData () . ' button", row)';
 			}
+				
+			foreach($column->getDataAttributes() as $key=>$value) {
+
+				$scriptStyle .= $selector.'.data("'.$key.'",data["'.$value.'"]);';
+			}		
+			
+			
 			/*
 			 * Apply column styles dinamically to each column
 			 */
