@@ -49,6 +49,22 @@ class StesiTable {
 	private $stesiTableButtons;
 	private $filterFormName;
 	private $globalFilter = "";
+	private $rowDataAttributes = array ();
+	private $rowClasses = array ();
+	function addRowClass($className) {
+		$this->rowClasses [] = $className;
+		return $this;
+	}
+	function getRowClasses() {
+		return $this->rowClasses;
+	}
+	public function getRowDataAttributes() {
+		return $this->rowDataAttributes;
+	}
+	public function addRowDataAttributes($attributeKey, $attributeValue) {
+		$this->rowDataAttributes [$attributeKey] = str_replace ( ".", "", $attributeValue);
+	}
+	
 	/**
 	 *
 	 * @param int $id        	
@@ -101,17 +117,18 @@ class StesiTable {
 	public function addColumn(StesiColumn $stesiColumn) {
 		$this->columns [$stesiColumn->getColumnName ()] = $stesiColumn;
 		if ($this->form) {
-			if ($stesiColumn->getColumnType () != StesiColumnType::Button) {
+			if (! $stesiColumn->isHidden () && $stesiColumn->getColumnType () != StesiColumnType::Button) {
 				// Se è settato a true, creo un elemento della form instanziando dinamicamente un elemento PFBC e aggiungendolo alla form
 				$class = new \ReflectionClass ( "PFBC\Element\\" . (array_flip ( (new \ReflectionClass ( "Stesi\StesiTable\StesiColumnType" ))->getConstants () ) [$stesiColumn->getColumnType ()]) );
 				if (! $class)
 					throw new \Exception ( "PFBC class " . $class . " not found" );
 				$instance = $class->newInstanceArgs ( array (
 						$stesiColumn->getColumnDescription (),
-						$stesiColumn->getColumnData ( true ),
+						$stesiColumn->getColumnFilterName (),
 						$stesiColumn->getOptions (),
 						$stesiColumn->getProperties () 
 				) );
+				
 				$this->form->addElement ( $instance );
 			}
 		}
@@ -262,10 +279,12 @@ class StesiTable {
 		$tableColums = $this->getColumns ();
 		$th = "<tr>";
 		foreach ( $tableColums as $column ) {
-			if($column->getColumnType()!=StesiColumnType::Button)
-				$th .= "<th>" . $column->getColumnDescription () . "</th>";
-			else 
-				$th.="<th></th>";
+			if (! $column->isHidden ()) {
+				if ($column->getColumnType () != StesiColumnType::Button)
+					$th .= "<th>" . $column->getColumnDescription () . "</th>";
+				else
+					$th .= "<th></th>";
+			}
 		}
 		$th .= "</tr>";
 		
@@ -388,6 +407,7 @@ class StesiTable {
 		}
 		$table .= "dom:'" . $dom . "',";
 		$table .= '
+				 "lengthMenu": [ 10, 25, 50,100,500,100 ],
         	"language": {
         	    "search": "Ricerca Globale",
         	    "lengthMenu": "Elem.per pagina _MENU_ ",
@@ -409,23 +429,25 @@ class StesiTable {
 		 * Create column dinamically with custom class that has the same name of column, data with columnName without point (ex ArticoliNatura), name with columnName with point (ex Articoli.Natura)
 		 */
 		foreach ( $tableColums as $column ) {
-			if ($column->getColumnType () == StesiColumnType::Button) {
-				
-				
-				$table .= '{ 	
+			//Se è nascosta, la colonna non deve essere visualizzata
+			if (! $column->isHidden ()) {
+				if ($column->getColumnType () == StesiColumnType::Button) {
+					
+					$table .= '{ 	
 						"class":"' . $column->getColumnData () . '",
 						"data": "null",
 						"orderable": "false",
 								"defaultContent":
 						"<button class=\"' . $column->getColumnData () . '\"></button>" },';
-				if(!empty($column->getJsButtonCallback())){
-					array_push ( $buttonsFunction, array (
-							"class" => $column->getColumnName ( false ),
-							"function" => $column->getJsButtonCallback () 
-					) );
+					if (! empty ( $column->getJsButtonCallback () )) {
+						array_push ( $buttonsFunction, array (
+								"class" => $column->getColumnName ( false ),
+								"function" => $column->getJsButtonCallback () 
+						) );
+					}
+				} else {
+					$table .= '{ "class": "' . $column->getColumnData () . '","data": "' . $column->getColumnData () . '","name":"' . $column->getColumnData () . '" },';
 				}
-			} else {
-				$table .= '{ "class": "' . $column->getColumnData () . '","data": "' . $column->getColumnData () . '","name":"' . $column->getColumnData () . '" },';
 			}
 		}
 		
@@ -449,8 +471,7 @@ class StesiTable {
 			       ';
 		if (! empty ( $this->globalFilter )) {
 			$table .= '
-			      				
-			      				$("#' . $this->id . '_filter input").val("' . $this->globalFilter . '");';
+					$("#' . $this->id . '_filter input").val("' . $this->globalFilter . '");';
 		}
 		$table .= '
 			},			        		
@@ -534,25 +555,38 @@ class StesiTable {
 	private function createFunctionColumnStyles() {
 		$script = "function applyStyles(row,data)
 		{
+				
 				";
+		foreach ( $this->rowClasses as $class ) {
+			$script .= "$(row).addClass('" . $class . "');";
+		}
+		foreach ( $this->rowDataAttributes as $key => $value ) {
+			$script .= "
+					$(row).data('" . $key . "',data['" . $value . "']);";
+		}
+		
 		$tableColums = $this->getColumns ();
 		foreach ( $tableColums as $column ) {
 			
 			/*
 			 * Apply column data-attributes
 			 */
-
-			$scriptStyle="";
-			$selector='$("td.' . $column->getColumnData () . ' ", row)';
-			if($column->getColumnType()==StesiColumnType::Button){
-				$selector='$("td.' . $column->getColumnData () . ' button", row)';
-			}
-				
-			foreach($column->getDataAttributes() as $key=>$value) {
-
-				$scriptStyle .= $selector.'.data("'.$key.'",data["'.$value.'"]);';
-			}		
 			
+			$scriptStyle = "";
+			$selector = '$("td.' . $column->getColumnData () . ' ", row)';
+			if ($column->getColumnType () == StesiColumnType::Button) {
+				$selector = '$("td.' . $column->getColumnData () . ' button", row)';
+			}
+			
+			foreach ( $column->getDataAttributes () as $key => $value ) {
+				
+				$scriptStyle .= $selector . '.data("' . $key . '",data["' . $value . '"]);';
+			}
+			
+			foreach ( $column->getCustomAttributes () as $key => $value ) {
+			
+				$scriptStyle .= $selector . '.data("' . $key . '","' . $value . '");';
+			}
 			
 			/*
 			 * Apply column styles dinamically to each column
@@ -569,8 +603,8 @@ class StesiTable {
 				
 				if (! empty ( $columnStyle->getConditionOperator () )) {
 					$scriptStyle .= "if(data['" . (! empty ( $columnStyle->getOtherColumnId () ) ? $columnStyle->getOtherColumnId () : $column->getColumnData ()) . "']" . $columnStyle->getConditionOperator () . "'" . $columnStyle->getValue () . "'){";
-				}else{
-					$scriptStyle.=" if(true){";
+				} else {
+					$scriptStyle .= " if(true){";
 				}
 				
 				$scriptStyle .= $selector;
@@ -588,8 +622,8 @@ class StesiTable {
 				}
 				$scriptStyle .= ";";
 				
-				if(!$columnStyle->getVisibility()){
-					$scriptStyle.='$("td.' . $column->getColumnData () . '", row).html("")';
+				if (! $columnStyle->getVisibility ()) {
+					$scriptStyle .= '$("td.' . $column->getColumnData () . '", row).html("")';
 				}
 				
 				$scriptStyle .= ";";
@@ -598,18 +632,17 @@ class StesiTable {
 						$scriptStyle .= '$("' . $html . '").prependTo($("td.' . $column->getColumnData () . '", row));';
 					}
 				}
-				if($columnStyle->getIcon()){
-					$scriptStyle .= $selector.'.append("' . $columnStyle->getIcon() . '");';
+				if ($columnStyle->getIcon ()) {
+					$scriptStyle .= $selector . '.append("' . $columnStyle->getIcon () . '");';
 				}
 				$scriptStyle .= "} else ";
-				
 			}
-			if(!empty($scriptStyle))
-				$scriptStyle=substr($scriptStyle,0,strlen($scriptStyle)-5);
-			$script.=$scriptStyle.";";
+			if (! empty ( $scriptStyle ))
+				$scriptStyle = substr ( $scriptStyle, 0, strlen ( $scriptStyle ) - 5 );
+			$script .= $scriptStyle . ";";
 		}
-
-		$script.="}";
+		
+		$script .= "}";
 		return $script;
 	}
 	private function inizializeButtons() {
@@ -622,7 +655,7 @@ class StesiTable {
 					$buttons .= ",{
 							extend: '" . $datatableButton ['name'] . "',
 							text: '" . $datatableButton ['text'] . "',
-							titleAttr:'" . $datatableButton ['titleAttr'] . "'
+							titleAttr:'" . $datatableButton ['titleAttr'] . "'									
 							}";
 				}
 			}
@@ -631,7 +664,11 @@ class StesiTable {
 				$buttons .= ",{
 					text:'" . $text . "',					
 					init :function (e,dt){
-						dt.context.id='" . $stesiButton->getId () . "'		
+						dt.context.id='" . $stesiButton->getId () . "'";
+					foreach($stesiButton->getCustomAttributes() as $key=>$value){
+						$buttons.=",dt.data('".$key."','".$value."')";
+					}
+				$buttons.="
 					}
 					";
 				$class = $stesiButton->getClass ();
@@ -663,7 +700,7 @@ class StesiTable {
 	
 	/**
 	 * globalFilter
-	 * 
+	 *
 	 * @return string
 	 */
 	public function getGlobalFilter() {
@@ -672,7 +709,7 @@ class StesiTable {
 	
 	/**
 	 * globalFilter
-	 * 
+	 *
 	 * @param string $globalFilter        	
 	 * @return StesiTable
 	 */
@@ -687,12 +724,24 @@ class StesiTableButton {
 	private $class;
 	private $id;
 	private $tooltip;
+	private $customAttributes;
+	
 	function __construct($id) {
 		$this->id = $id;
+		$this->customAttributes=array();
 	}
 	public function getId() {
 		return $this->id;
 	}
+	
+	public function getCustomAttributes(){
+		return $this->customAttributes;
+	}
+	
+	public function addCustomAttribute($key,$attr){
+		$this->customAttributes[$key]=$attr;
+	}
+	
 	
 	/**
 	 * text
@@ -756,7 +805,7 @@ class StesiTableButton {
 	
 	/**
 	 * tooltip
-	 * 
+	 *
 	 * @return string
 	 */
 	public function getTooltip() {
@@ -765,7 +814,7 @@ class StesiTableButton {
 	
 	/**
 	 * tooltip
-	 * 
+	 *
 	 * @param string $tooltip        	
 	 * @return StesiTable
 	 */

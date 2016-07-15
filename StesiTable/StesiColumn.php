@@ -14,6 +14,8 @@ class StesiColumn {
 	private $alias;
 	private $text;
 	private $dataAttributes=array();
+	private $customAttributes=array();
+	private $hidden=false;
 	/**
 	 *
 	 * @param string $columnName
@@ -43,8 +45,13 @@ class StesiColumn {
 	}
 	
 	public function addDataAttributes($attributeKey,$attributeValue){
-		$this->dataAttributes[$attributeKey]=$attributeValue;
+		$this->dataAttributes[$attributeKey]=str_replace ( ".", "", $attributeValue);
 	}
+	
+	public function addCustomAttributes($attributeKey,$attributeValue){
+		$this->dataAttributes[$attributeKey]=str_replace ( ".", "", $attributeValue);
+	}
+	
 	/**
 	 *
 	 * @param boolean $dot
@@ -195,6 +202,34 @@ class StesiColumn {
 	public function getJsButtonCallback() {
 		return $this->jsFunction;
 	}
+	
+	/**
+	 * columnFilterName
+	 * @return string as name of filter
+	 */
+	public function getColumnFilterName(){
+		return array_flip ( (new \ReflectionClass ( "Stesi\StesiTable\StesiColumnType" ))->getConstants () ) [$this->getColumnType ()]."_".(empty($this->alias)?$this->columnName:$this->alias);
+	}
+	
+
+	/**
+	 * hidden
+	 * @return boolean
+	 */
+	public function isHidden(){
+		return $this->hidden;
+	}
+	
+	/**
+	 * hidden
+	 * @param boolean $hidden if true, the column doesn't shown into datatable
+	 * @return StesiColumn
+	 */
+	public function setHidden($hidden){
+		$this->hidden = $hidden;
+		return $this;
+	}
+	
 }
 /**
  *
@@ -208,8 +243,6 @@ class StesiColumnType {
 	const Select = 1;
 	const Number = 3;
 	const Date = 4;
-	const DateTime = 5;
-	const TextArea = 6;
 	const Button = 7;
 }
 /**
@@ -346,5 +379,4 @@ class StesiColumnStyle {
         $this->otherColumnId = $otherColumnId;
         return $this;
     }
-
 }
