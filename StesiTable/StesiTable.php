@@ -407,7 +407,7 @@ class StesiTable {
 		}
 		$table .= "dom:'" . $dom . "',";
 		$table .= '
-				 "lengthMenu": [ 10, 25, 50,100,500,100 ],
+				 "lengthMenu": [ 10, 25, 50,75,100,500,1000],
         	"language": {
         	    "search": "Ricerca Globale",
         	    "lengthMenu": "Elem.per pagina _MENU_ ",

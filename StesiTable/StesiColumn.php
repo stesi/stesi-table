@@ -52,6 +52,10 @@ class StesiColumn {
 		$this->dataAttributes[$attributeKey]=str_replace ( ".", "", $attributeValue);
 	}
 	
+	public function getCustomAttributes(){
+		return $this->customAttributes;
+	}
+	
 	/**
 	 *
 	 * @param boolean $dot
