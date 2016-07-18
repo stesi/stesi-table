@@ -449,7 +449,15 @@ class StesiTable {
 						) );
 					}
 				} else {
-					$table .= '{ "class": "' . $column->getColumnData () . '","data": "' . $column->getColumnData () . '","name":"' . $column->getColumnData () . '" },';
+					$table .= '{ "class": "' . $column->getColumnData () . '","data": "' . $column->getColumnData () . '","name":"' . $column->getColumnData () . '"';
+					if(!empty($column->getHyperlink())){
+						$table.=',"render": function ( data, type, full, meta ) {
+      return \'<a href="'+$column->getHyperlink()+'">Download</a>\';
+    		},';
+					}
+					
+				
+				$table.='},';
 				}
 			}
 		}

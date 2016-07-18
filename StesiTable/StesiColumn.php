@@ -17,6 +17,7 @@ class StesiColumn {
 	private $customAttributes=array();
 	private $hidden=false;
 	private $columnHeader="";
+	private $hyperlink;
 	/**
 	 *
 	 * @param string $columnName
@@ -42,6 +43,24 @@ class StesiColumn {
 		$this->columnHeader=$this->columnDescription;
 	}
 	
+	/**
+	 * hyperlink
+	 * @return unkown
+	 */
+	public function getHyperlink(){
+		return $this->hyperlink;
+	}
+	
+	/**
+	 * hyperlink
+	 * @param unkown $hyperlink
+	 * @return StesiColumn
+	 */
+	public function setHyperlink($hyperlink){
+		$this->hyperlink = $hyperlink;
+		return $this;
+	}
+		
 	public function getDataAttributes(){
 		return $this->dataAttributes;
 	}
@@ -405,4 +424,7 @@ class StesiColumnStyle {
         $this->otherColumnId = $otherColumnId;
         return $this;
     }
+
+  
+
 }
