@@ -12,6 +12,8 @@ use PFBC\Element\Button;
  * @package Stesi.StesiTable
  */
 class StesiTable {
+	
+	private $defaultIndexOrder;
 	/**
 	 * The value for the id table field.
 	 *
@@ -281,7 +283,7 @@ class StesiTable {
 		foreach ( $tableColums as $column ) {
 			if (! $column->isHidden ()) {
 				if ($column->getColumnType () != StesiColumnType::Button)
-					$th .= "<th>" . $column->getColumnDescription () . "</th>";
+					$th .= "<th>" . $column->getColumnHeader () . "</th>";
 				else
 					$th .= "<th></th>";
 			}
@@ -399,7 +401,7 @@ class StesiTable {
 			serverSide : true,';
 		
 		$dom = 'ftl<\"pull-left\"i>p';
-		$buttons = $this->inizializeButtons ();
+		$buttons = $this->initializeButtons ();
 		if (! empty ( $buttons )) {
 			
 			$dom = "<\"pull-left\"B>" . $dom;
@@ -407,8 +409,9 @@ class StesiTable {
 		}
 		$table .= "dom:'" . $dom . "',";
 		$table .= '
-				 "lengthMenu": [ 10, 25, 50,75,100,500,1000],
-        	"language": {
+				 "lengthMenu": [ 10, 25, 50,75,100,500,1000],'.				
+				(!empty($this->defaultIndexOrder)?'order: [['.$this->defaultIndexOrder.' , "desc" ]],':'order:[[0,"desc"]],')				
+        	.'"language": {
         	    "search": "Ricerca Globale",
         	    "lengthMenu": "Elem.per pagina _MENU_ ",
         	    "info": "_PAGES_ Pagine / Totale elementi: _TOTAL_",
@@ -645,20 +648,10 @@ class StesiTable {
 		$script .= "}";
 		return $script;
 	}
-	private function inizializeButtons() {
+	private function initializeButtons() {
 		if (! empty ( $this->getDatatableButtons () ) || ! empty ( $this->getStesiButtons () )) {
 			$buttons = "";
-			foreach ( $this->getDatatableButtons () as $datatableButton ) {
-				if (empty ( $datatableButton ['text'] ) && empty ( $datatableButton ['titleAttr'] )) {
-					$buttons .= ",'" . $datatableButton ['name'] . "'";
-				} else {
-					$buttons .= ",{
-							extend: '" . $datatableButton ['name'] . "',
-							text: '" . $datatableButton ['text'] . "',
-							titleAttr:'" . $datatableButton ['titleAttr'] . "'									
-							}";
-				}
-			}
+		
 			foreach ( $this->getStesiButtons () as $stesiButton ) {
 				$text = ! empty ( $stesiButton->getText () ) ? $stesiButton->getText () : $stesiButton->getId ();
 				$buttons .= ",{
@@ -685,6 +678,17 @@ class StesiTable {
 					$buttons .= ",action:'" . $action . "'";
 				}
 				$buttons .= "}";
+			}
+			foreach ( $this->getDatatableButtons () as $datatableButton ) {
+				if (empty ( $datatableButton ['text'] ) && empty ( $datatableButton ['titleAttr'] )) {
+					$buttons .= ",'" . $datatableButton ['name'] . "'";
+				} else {
+					$buttons .= ",{
+							extend: '" . $datatableButton ['name'] . "',
+							text: '" . $datatableButton ['text'] . "',
+							titleAttr:'" . $datatableButton ['titleAttr'] . "'
+							}";
+				}
 			}
 			$buttons = 'buttons: [' . substr ( $buttons, 1 ) . "],";
 			return $buttons;
@@ -715,6 +719,24 @@ class StesiTable {
 	 */
 	public function setGlobalFilter($globalFilter) {
 		$this->globalFilter = $globalFilter;
+		return $this;
+	}
+	
+	/**
+	 * defaultIndexOrder
+	 * @return int
+	 */
+	public function getDefaultIndexOrder(){
+		return $this->defaultIndexOrder;
+	}
+	
+	/**
+	 * defaultIndexOrder
+	 * @param int $defaultIndexOrder
+	 * @return StesiTable
+	 */
+	public function setDefaultIndexOrder($defaultIndexOrder){
+		$this->defaultIndexOrder = $defaultIndexOrder;
 		return $this;
 	}
 }
@@ -822,5 +844,8 @@ class StesiTableButton {
 		$this->tooltip = $tooltip;
         return $this;
     }
+
+
+   
 
 }

@@ -16,6 +16,7 @@ class StesiColumn {
 	private $dataAttributes=array();
 	private $customAttributes=array();
 	private $hidden=false;
+	private $columnHeader="";
 	/**
 	 *
 	 * @param string $columnName
@@ -25,7 +26,7 @@ class StesiColumn {
 	 * @param boolean $globalSearcheable
 	 *        	if true, the column is used in global search
 	 */
-	function __construct($columnName, $columnDescription = null, $globalSearcheable = 0) {
+	function __construct($columnName, $columnDescription = null, $globalSearcheable = 1) {
 		$this->columnName = $columnName;
 		$this->globalSearcheable = $globalSearcheable;
 		$this->stesiColumnStyles = array ();
@@ -38,6 +39,7 @@ class StesiColumn {
 		$this->options = array ();
 		$this->properties = array ();
 		$this->attributes=array();
+		$this->columnHeader=$this->columnDescription;
 	}
 	
 	public function getDataAttributes(){
@@ -54,6 +56,24 @@ class StesiColumn {
 	
 	public function getCustomAttributes(){
 		return $this->customAttributes;
+	}
+	
+	/**
+	 * columnHeader
+	 * @return string
+	 */
+	public function getColumnHeader(){
+		return $this->columnHeader;
+	}
+	
+	/**
+	 * columnHeader
+	 * @param string $columnHeader
+	 * @return StesiColumn
+	 */
+	public function setColumnHeader($columnHeader){
+		$this->columnHeader = $columnHeader;
+		return $this;
 	}
 	
 	/**
@@ -81,6 +101,8 @@ class StesiColumn {
 	 *        	$columnType
 	 */
 	public function setColumnType($columnType) {
+		if($columnType==StesiColumnType::Button || $columnType==StesiColumnType::Date)
+			$this->globalSearcheable=0;
 		$this->columnType = $columnType;
 		return $this;
 	}
