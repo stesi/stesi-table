@@ -124,6 +124,11 @@ class StesiTable {
 				$class = new \ReflectionClass ( "PFBC\Element\\" . (array_flip ( (new \ReflectionClass ( "Stesi\StesiTable\StesiColumnType" ))->getConstants () ) [$stesiColumn->getColumnType ()]) );
 				if (! $class)
 					throw new \Exception ( "PFBC class " . $class . " not found" );
+				if(!array_key_exists("placeholder",$stesiColumn->getOptions()))
+					$stesiColumn->setOptions(array_merge($stesiColumn->getOptions(),array("placeholder"=>$stesiColumn->getColumnDescription())));
+				if(!array_key_exists("class",$stesiColumn->getOptions()))
+					$stesiColumn->setOptions(array_merge($stesiColumn->getOptions(),array("class"=>"form-control")));
+							
 				$instance = $class->newInstanceArgs ( array (
 						$stesiColumn->getColumnDescription (),
 						$stesiColumn->getColumnFilterName (),
