@@ -81,6 +81,10 @@ class StesiTable {
 		if ($useForm) {
 			$this->form = new Form ( $this->id . "_form" );
 			$this->filterFormName = "filter";
+			$this->form->addElement ( new Button ( "Filtra", "button", array (
+					"id" => "filter_button_top",
+					"class" => "btn btn-primary"
+			) ) );
 		}
 	}
 	
@@ -275,8 +279,8 @@ class StesiTable {
 					) 
 			) );
 			$this->form->addElement ( new Button ( "Filtra", "button", array (
-					"id" => "filter_button",
-					"class" => "btn-primary" 
+					"id" => "filter_button_bottom",
+					"class" => "btn btn-primary" 
 			) ) );
 		}
 		$table = "
@@ -559,8 +563,11 @@ class StesiTable {
 			            }
 			          
 			        });
-			        
-			        $('#filter_button').bind('click', function(e) {
+			         $('#filter_button_top').bind('click', function(e) {
+			          	e.preventDefault();
+			        	datatable.draw();
+			        });
+			        $('#filter_button_bottom').bind('click', function(e) {
 			          	e.preventDefault();
 			        	datatable.draw();
 			        });";
