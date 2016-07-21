@@ -656,7 +656,7 @@ class StesiTable {
 					}
 				}
 				if (! empty ( $columnStyle->getPClass () )) {
-					$scriptStyle .= '.html("<p class=\'' . $columnStyle->getPClass () . '\' style=\'width:100%\'>"+ data[\'' . $column->getColumnData () . '\']+"</p>")';
+					$scriptStyle .= '.html("<p class=\'' . $columnStyle->getPClass () . '\' style=\'width:100%\;margin:1px;\'>"+ data[\'' . $column->getColumnData () . '\']+"</p>")';
 				}
 				$scriptStyle .= ";";
 				
