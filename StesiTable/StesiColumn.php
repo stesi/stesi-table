@@ -18,6 +18,7 @@ class StesiColumn {
 	private $hidden=false;
 	private $columnHeader="";
 	private $hyperlink;
+	private $orderable=true;
 	/**
 	 *
 	 * @param string $columnName
@@ -175,6 +176,16 @@ class StesiColumn {
 				return $this->columnName;
 		}
 	}
+	
+	public function isOrderable(){
+		return $this->orderable;
+	}
+	public function setOrderable($orderable){
+		$this->orderable=$orderable;
+		return $this;
+	}
+	
+
 	/**
 	 * Add an array of option used in PFBC column
 	 *

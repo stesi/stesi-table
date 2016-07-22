@@ -44,6 +44,11 @@ class StesiTable {
 	 *
 	 * @var integer
 	 */
+	
+	private $fixedColumnLeft;
+	private $fixedColumnRight;
+	
+	
 	private $columnOrder;
 	private $form;
 	private $datatableButtons;
@@ -77,6 +82,7 @@ class StesiTable {
 		$this->isColReorderable = false;
 		$this->customButtons = array ();
 		$this->datatableButtons = array ();
+		$this->fixedColumnLeft=$this->fixedColumnRight=0;
 		if ($useForm) {
 			$this->form = new Form ( $this->id . "_form" );
 			$this->filterFormName = "filter";
@@ -228,6 +234,24 @@ class StesiTable {
 	public function getColumns() {
 		return $this->columns;
 	}
+	
+	public function setNumberFixedLeftColumns($fixedLeftColumns){
+		$this->fixedColumnLeft=$fixedLeftColumns;
+	}
+	
+	public function setNumberFixedRightColumns($fixedRightColumns){
+		$this->fixedColumnRight=$fixedRightColumns;
+	}
+	
+	
+	public function getNumberFixedLeftColumns(){
+		return $this->fixedLeftColumns;
+	}
+	
+	public function getNumberFixedRightColumns(){
+		return $this->fixedRightColumns;
+	}
+	
 	/**
 	 *
 	 * @param boolean $onlyGlobalSerchable        	
@@ -415,13 +439,11 @@ class StesiTable {
 			        		
 				var datatable=$("#' . $this->id . '").DataTable({
 	       processing: true,
-			
 			keys: true,
 			ordering:true,
-			bSortable:true,
 			stateSave: true,
 			stateDuration: 24*60*60,
-			scrollY:        800,
+			scrollY:800,
 			scrollCollapse: true,
 	        scrollX:        true,
 	        fixedHeader:   true,
@@ -464,8 +486,8 @@ class StesiTable {
 					$table .= '{ 	
 						"class":"' . $column->getColumnData () . '",
 						"data": "null",
-						"orderable": "false",
-								"defaultContent":
+						"orderable": false,
+						"defaultContent":
 						"<button class=\"' . $column->getColumnData () . '\"></button>" },';
 					if (! empty ( $column->getJsButtonCallback () )) {
 						array_push ( $buttonsFunction, array (
@@ -474,7 +496,10 @@ class StesiTable {
 						) );
 					}
 				} else {
-					$table .= '{ "class": "' . $column->getColumnData () . '","data": "' . $column->getColumnData () . '","name":"' . $column->getColumnData () . '"';
+					$table .= '{ 
+							
+							"class": "' . $column->getColumnData () . '","data": "' . $column->getColumnData () . '","name":"' . $column->getColumnData () . '",
+							"orderable":'.var_export($column->isOrderable(), true);
 					if (! empty ( $column->getHyperlink () )) {
 						$table .= ',"render": function ( data, type, full, meta ) {
       return \'<a href="' + $column->getHyperlink () + '">Download</a>\';
@@ -529,14 +554,36 @@ class StesiTable {
 		 * Reorder columns if specified and create an ajax call to the columnReorderCallBack if is specified
 		 */
 		if ($this->isColReorderable) {
-			$table .= "
-			new $.fn.dataTable.ColReorder(datatable,{
-				realtime: true";
-			if (! empty ( $this->columnOrder )) {
-				$table .= ",order: [" . implode ( ",", $this->columnOrder ) . "]";
-			}
-			if (! empty ( $this->columnReorderCallBack )) {
-				$table .= ",reorderCallback:function(){
+				
+						if($this->fixedColumnLeft>0 || $this->fixedColumnRight>0){
+							$table.="
+									 new $.fn.dataTable.FixedColumns( datatable, {
+									'leftColumns':".$this->fixedColumnLeft.",
+									'rightColumns':".$this->fixedColumnRight."
+			           } );
+									";
+						}
+						$table .=
+						" new $.fn.dataTable.ColReorder(datatable,{
+				realtime: 'true'
+				";
+						
+						
+						
+						
+						
+						if (! empty ( $this->columnOrder )) {
+							$table .= ",
+									order: [" . implode ( ",", $this->columnOrder ) . "]";
+						}
+						
+						if($this->fixedColumnLeft>0 || $this->fixedColumnRight>0){
+							$table.="
+						,fixedColumnsLeft:".($this->fixedColumnLeft>0?($this->fixedColumnLeft):"0").",
+						fixedColumnsRight:".($this->fixedColumnRight>0?($this->fixedColumnRight):"0");
+						}
+						if (! empty ( $this->columnReorderCallBack )) {
+							$table .= ",reorderCallback:function(){
 	            		$.ajax({
 									type : 'POST',
 									url : '" . $this->columnReorderCallBack . "',
@@ -547,14 +594,15 @@ class StesiTable {
 									}
 								});
 	             		datatable.rows().every( function () {
-	             				applyStyles(this.node(),this.data());		
+	             				applyStyles(this.node(),this.data());
 	             		} );
 	             	}";
-			}
-			$table .= "
+						}
+						$table .= "
 			});
-			
+						
 			";
+			
 		}
 		$table .= $this->createFunctionColumnStyles ();
 		$table .= "
