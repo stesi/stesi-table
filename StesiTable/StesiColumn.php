@@ -57,7 +57,7 @@ class StesiColumn {
 	 * @param unkown $hyperlink
 	 * @return StesiColumn
 	 */
-	public function setHyperlink($hyperlink){
+	public function setHyperlink($hyperlink,$separator){
 		$this->hyperlink = $hyperlink;
 		return $this;
 	}
