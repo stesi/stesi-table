@@ -326,7 +326,7 @@ class StesiTable {
 			$this->addFilterButton("filter_button_bottom");
 		}
 		$table = "
-				<table id=\"" . $this->id . "\"  class='table-striped table-bordered table-hover  dataTable nowrap' cellspacing='0'
+				<table id=\"" . $this->id . "\"  class='table table-striped table-bordered table-hover  dataTable nowrap' cellspacing='0'
                    width='100%'>";
 		
 		$tableColums = $this->getColumns ();
@@ -459,7 +459,7 @@ class StesiTable {
 		$table .= "dom:'" . $dom . "',";
 		$table .= '
 				 "lengthMenu": [ 10, 25, 50,75,100,500,1000],' . (! empty ( $this->defaultIndexOrder ) ? 'order: [[' . $this->defaultIndexOrder . ' , "desc" ]],' : 'order:[[0,"desc"]],') . '"language": {
-        	    "search": "Ricerca Globale",
+        	    "search": "",
         	    "lengthMenu": "Elem.per pagina _MENU_ ",
         	    "info": "_PAGES_ Pagine / Totale elementi: _TOTAL_",
         	    "processing": "Caricamento dati in corso..."
