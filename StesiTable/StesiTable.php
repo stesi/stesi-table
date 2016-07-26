@@ -460,9 +460,13 @@ class StesiTable {
 		$table .= '
 				 "lengthMenu": [ 10, 25, 50,75,100,500,1000],' . (! empty ( $this->defaultIndexOrder ) ? 'order: [[' . $this->defaultIndexOrder . ' , "desc" ]],' : 'order:[[0,"desc"]],') . '"language": {
         	    "search": "",
-        	    "lengthMenu": "Elem.per pagina _MENU_ ",
+        	    "lengthMenu": "_MENU_",
         	    "info": "_PAGES_ Pagine / Totale elementi: _TOTAL_",
-        	    "processing": "Caricamento dati in corso..."
+        	    "processing": "Caricamento dati in corso...",
+				"paginate":{
+				 	"previous":"<<",
+				 	"next":">>",
+				 }
         	  },
         "ajax": {
     "url": "' . $ajaxCallBack . '",
@@ -487,6 +491,7 @@ class StesiTable {
 						"class":"' . $column->getColumnData () . '",
 						"data": "null",
 						"orderable": false,
+						"title":"'.$column->getColumnHeader().'",
 						"defaultContent":
 						"<button class=\"' . $column->getColumnData () . '\"></button>" },';
 					if (! empty ( $column->getJsButtonCallback () )) {
