@@ -342,7 +342,10 @@ class StesiTable {
 		$th .= "</tr>";
 		
 		$table .= "<thead>";
-		$table .= $th . "</thead></table>";
+		$table .= $th . "</thead>";
+		$table .= "<tfoot>";
+		$table .= $th . "</tfoot></table>";
+		
 		$table .= $this->createJsScript ( $ajaxCallBack );
 		return $table;
 	}
