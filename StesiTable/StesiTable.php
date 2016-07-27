@@ -447,6 +447,7 @@ class StesiTable {
 			select: true,
 			stateDuration: 24*60*60,
 			scrollCollapse: true,
+			scrollY: 800,
 	        scrollX:        true,
 			serverSide : true,';
 		
