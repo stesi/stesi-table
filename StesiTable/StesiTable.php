@@ -44,11 +44,9 @@ class StesiTable {
 	 *
 	 * @var integer
 	 */
-	
 	private $fixedColumnLeft;
 	private $fixedColumnRight;
-	
-	
+	private $stateSaving = true;
 	private $columnOrder;
 	private $form;
 	private $datatableButtons;
@@ -67,6 +65,12 @@ class StesiTable {
 	public function getRowDataAttributes() {
 		return $this->rowDataAttributes;
 	}
+	public function stateSaving($stateSaving) {
+		$this->stateSaving = $stateSaving;
+	}
+	public function getStateSaving() {
+		return $this->stateSaving;
+	}
 	public function addRowDataAttributes($attributeKey, $attributeValue) {
 		$this->rowDataAttributes [$attributeKey] = str_replace ( ".", "", $attributeValue );
 	}
@@ -82,11 +86,11 @@ class StesiTable {
 		$this->isColReorderable = false;
 		$this->customButtons = array ();
 		$this->datatableButtons = array ();
-		$this->fixedColumnLeft=$this->fixedColumnRight=0;
+		$this->fixedColumnLeft = $this->fixedColumnRight = 0;
 		if ($useForm) {
 			$this->form = new Form ( $this->id . "_form" );
 			$this->filterFormName = "filter";
-			$this->addFilterButton("filter_button_top");
+			$this->addFilterButton ( "filter_button_top" );
 		}
 	}
 	
@@ -130,29 +134,11 @@ class StesiTable {
 				$class = new \ReflectionClass ( "PFBC\Element\\" . (array_flip ( (new \ReflectionClass ( "Stesi\StesiTable\StesiColumnType" ))->getConstants () ) [$stesiColumn->getColumnType ()]) );
 				if (! $class)
 					throw new \Exception ( "PFBC class " . $class . " not found" );
-				if ($stesiColumn->getColumnType () != StesiColumnType::Select) {
-					if (! array_key_exists ( "placeholder", $stesiColumn->getOptions () )) {
-						$stesiColumn->setOptions ( array_merge ( $stesiColumn->getOptions (), array (
-								"placeholder" => $stesiColumn->getColumnDescription () 
-						) ) );
-					}
-					if (! array_key_exists ( "title", $stesiColumn->getOptions () )) {
-						$stesiColumn->setOptions ( array_merge ( $stesiColumn->getOptions (), array (
-								"title" => $stesiColumn->getColumnDescription () 
-						) ) );
-					}
-					if (! array_key_exists ( "style", $stesiColumn->getOptions () )) {
-						$stesiColumn->setOptions ( array_merge ( $stesiColumn->getOptions (), array (
-								"style" => "margin-bottom:5px;"
-						) ) );
-					}
-					if (! array_key_exists ( "class", $stesiColumn->getOptions () ))
-						$stesiColumn->setOptions ( array_merge ( $stesiColumn->getOptions (), array (
-								"class" => "form-control" 
-						) ) );
-				}
+				
+				$this->setDefaultColumnAttribute ( $stesiColumn );
+				
 				$instance = $class->newInstanceArgs ( array (
-						null,
+						($stesiColumn->getColumnType()==StesiColumnType::Select?$stesiColumn->getColumnDescription():null),
 						$stesiColumn->getColumnFilterName (),
 						$stesiColumn->getOptions (),
 						$stesiColumn->getProperties () 
@@ -162,7 +148,71 @@ class StesiTable {
 		}
 		return $this->columns [$stesiColumn->getColumnName ()];
 	}
-	
+	private function setDefaultColumnAttribute(StesiColumn $stesiColumn) {
+		if ($stesiColumn->getColumnType () != StesiColumnType::Select) {
+			if (! array_key_exists ( "placeholder", $stesiColumn->getOptions () )) {
+				$stesiColumn->setOptions ( array_merge ( $stesiColumn->getOptions (), array (
+						"placeholder" => $stesiColumn->getColumnDescription () 
+				) ) );
+			}
+			if (! array_key_exists ( "title", $stesiColumn->getOptions () )) {
+				$stesiColumn->setOptions ( array_merge ( $stesiColumn->getOptions (), array (
+						"title" => $stesiColumn->getColumnDescription () 
+				) ) );
+			}
+			if (! array_key_exists ( "style", $stesiColumn->getOptions () )) {
+				$stesiColumn->setOptions ( array_merge ( $stesiColumn->getOptions (), array (
+						"style" => "margin-bottom:5px;" 
+				) ) );
+			}
+			
+			if($stesiColumn->getColumnType()==StesiColumnType::Date){
+				if (! array_key_exists ( "multiple", $stesiColumn->getOptions () )){
+					$stesiColumn->getOptions ( array_merge ( $stesiColumn->getOptions (), array (
+							"multiple" => true
+					) ) );
+				}
+			}
+			
+			if (! array_key_exists ( "class", $stesiColumn->getOptions () )){
+				$stesiColumn->setOptions ( array_merge ( $stesiColumn->getOptions (), array (
+						"class" => "form-control stesi_".(array_flip ( (new \ReflectionClass ( "Stesi\StesiTable\StesiColumnType" ))->getConstants ())[$stesiColumn->getColumnType()] ).((array_key_exists ( "multiple", $stesiColumn->getOptions () ) && $stesiColumn->getOptions()['multiple']=="false")?"single":"") 
+				) ) );
+			}
+			
+			if (! array_key_exists ( "id", $stesiColumn->getOptions () )) {
+				$stesiColumn->setOptions ( array_merge ( $stesiColumn->getOptions (), array (
+						"id" => $stesiColumn->getColumnData () 
+				) ) );
+			}
+			if (! array_key_exists ( "value", $stesiColumn->getOptions () )) {
+				$stesiColumn->setOptions ( array_merge ( $stesiColumn->getOptions (), array (
+						"value" => $this->getValueRequestSession ( $this->filterFormName, $stesiColumn->getColumnFilterName (), $stesiColumn->getDefaultFilterValue () ) 
+				) ) );
+			}
+		} else {
+			if (! array_key_exists ( "id", $stesiColumn->getProperties () )) {
+				$stesiColumn->setProperties ( array_merge ( $stesiColumn->getProperties (), array (
+						"id" => $stesiColumn->getColumnData () 
+				) ) );
+			}
+			if (! array_key_exists ( "multiple", $stesiColumn->getProperties () )){
+				$stesiColumn->setProperties ( array_merge ( $stesiColumn->getProperties (), array (
+						"multiple" => true 
+				) ) );
+			}
+			if (! array_key_exists ( "class", $stesiColumn->getProperties () )){
+				$stesiColumn->setProperties ( array_merge ( $stesiColumn->getProperties (), array (
+				"class" => "form-control stesi_".(array_flip ( (new \ReflectionClass ( "Stesi\StesiTable\StesiColumnType" ))->getConstants ())[$stesiColumn->getColumnType()] ).((!$stesiColumn->getProperties("multiple"))?"single":"")
+				) ) );
+			}
+			if (! array_key_exists ( "value", $stesiColumn->getProperties () )) {
+				$stesiColumn->setProperties ( array_merge ( $stesiColumn->getProperties (), array (
+						"value" => $this->getValueRequestSession ( $this->filterFormName, $stesiColumn->getColumnFilterName (), $stesiColumn->getDefaultFilterValue () ) 
+				) ) );
+			}
+		}
+	}
 	/**
 	 * Returns whether the object is Reaorderable
 	 *
@@ -234,21 +284,16 @@ class StesiTable {
 	public function getColumns() {
 		return $this->columns;
 	}
-	
-	public function setNumberFixedLeftColumns($fixedLeftColumns){
-		$this->fixedColumnLeft=$fixedLeftColumns;
+	public function setNumberFixedLeftColumns($fixedLeftColumns) {
+		$this->fixedColumnLeft = $fixedLeftColumns;
 	}
-	
-	public function setNumberFixedRightColumns($fixedRightColumns){
-		$this->fixedColumnRight=$fixedRightColumns;
+	public function setNumberFixedRightColumns($fixedRightColumns) {
+		$this->fixedColumnRight = $fixedRightColumns;
 	}
-	
-	
-	public function getNumberFixedLeftColumns(){
+	public function getNumberFixedLeftColumns() {
 		return $this->fixedLeftColumns;
 	}
-	
-	public function getNumberFixedRightColumns(){
+	public function getNumberFixedRightColumns() {
 		return $this->fixedRightColumns;
 	}
 	
@@ -303,15 +348,13 @@ class StesiTable {
 	 *        	name of function to call to render Datatable
 	 * @return string html of DataTable with the javascript that manage the table
 	 */
-	
-	private function addFilterButton($id){
+	private function addFilterButton($id) {
 		$this->form->addElement ( new Button ( "Filtra", "button", array (
 				"id" => $id,
 				"class" => "btn btn-primary btn-block",
-				"style"=>"margin-top:10px;margin-bottom:10px;"
+				"style" => "margin-top:10px;margin-bottom:10px;" 
 		) ) );
 	}
-	
 	public function getTable($ajaxCallBack) {
 		if ($this->form) {
 			$this->form->setAttribute ( "action", null );
@@ -321,9 +364,9 @@ class StesiTable {
 							"jQuery",
 							"jqueryui" 
 					) 
-			) );	
+			) );
 			
-			$this->addFilterButton("filter_button_bottom");
+			$this->addFilterButton ( "filter_button_bottom" );
 		}
 		$table = "
 				<table id=\"" . $this->id . "\"  class='table table-striped table-bordered table-hover  dataTable nowrap' cellspacing='0'
@@ -344,6 +387,18 @@ class StesiTable {
 		$table .= "<thead>";
 		$table .= $th . "</thead>";
 		$table .= "<tfoot>";
+		
+		$th = "<tr>";
+		foreach ( $tableColums as $column ) {
+			if (! $column->isHidden ()) {
+				if ($column->getColumnType () != StesiColumnType::Button)
+					$th .= "<th data-filter_id='".$column->getColumnName()."'>" . $column->getColumnHeader () . "</th>";
+					else
+						$th .= "<th></th>";
+			}
+		}
+		$th .= "</tr>";
+		
 		$table .= $th . "</tfoot></table>";
 		
 		$table .= $this->createJsScript ( $ajaxCallBack );
@@ -382,6 +437,31 @@ class StesiTable {
 	}
 	public function getStesiButtons() {
 		return $this->stesiTableButtons;
+	}
+	private function getValueRequestSession($key, $value = null, $default = "", $pageId = null) {
+		if (isset ( $_REQUEST ['hash'] ))
+			$hash = $_REQUEST ['hash'];
+		else
+			return "";
+		$val = "";
+		if (! empty ( $value )) {
+			
+			$val = isset ( $_REQUEST [$key] [$value] ) ? $_REQUEST [$key] [$value] : (! empty ( $pageId ) ? (isset ( $_SESSION ["$hash"] [$pageId] [$key] [$value] ) ? $_SESSION ["$hash"] [$pageId] [$key] [$value] : $default) : (isset ( $_SESSION ["$hash"] [$key] [$value] ) ? $_SESSION ["$hash"] [$key] [$value] : $default));
+			if (! empty ( $pageId )) {
+				$_SESSION ["$hash"] [$pageId] [$key] [$value] = $val;
+			} else {
+				$_SESSION ["$hash"] [$key] [$value] = $val;
+			}
+		} else {
+			$val = isset ( $_REQUEST [$key] ) ? $_REQUEST [$key] : (! empty ( $pageId ) ? (isset ( $_SESSION ["$hash"] [$pageId] [$key] ) ? $_SESSION ["$hash"] [$pageId] [$key] : $default) : (isset ( $_SESSION ["$hash"] [$key] ) ? $_SESSION ["$hash"] [$key] : $default));
+			if (! empty ( $pageId )) {
+				$_SESSION ["$hash"] [$pageId] [$key] = $val;
+			} else {
+				$_SESSION ["$hash"] [$key] = $val;
+			}
+		}
+		
+		return $val;
 	}
 	private function createJsScript($ajaxCallBack) {
 		$tableColums = $this->getColumns ();
@@ -446,7 +526,7 @@ class StesiTable {
 						
 	       processing: true,
 			ordering:true,
-			stateSave: true,
+			stateSave: ' . ($this->stateSaving == true ? "true" : "false") . ',
 			select: true,
 			stateDuration: 24*60*60,
 			scrollCollapse: true,
@@ -454,17 +534,15 @@ class StesiTable {
 	        scrollX:        true,
 			serverSide : true,';
 		
-		
 		$dom = "<'row'<'col-sm-6'B><'col-sm-6'f>>\" +
 \"<'row'<'col-sm-12'tr>>\" +
 \"<'row'<'col-sm-8'li><'col-sm-4'p>>";
 		
-		
-		//$dom = 'ftl<\"pull-left\"i>p';
+		// $dom = 'ftl<\"pull-left\"i>p';
 		$buttons = $this->initializeButtons ();
 		if (! empty ( $buttons )) {
 			
-			//$dom = "<\"pull-left\"B>" . $dom;
+			// $dom = "<\"pull-left\"B>" . $dom;
 			$table .= $buttons;
 		}
 		$table .= "dom:\"" . $dom . "\",";
@@ -502,7 +580,7 @@ class StesiTable {
 						"class":"' . $column->getColumnData () . '",
 						"data": "null",
 						"orderable": false,
-						"title":"'.$column->getColumnHeader().'",
+						"title":"' . $column->getColumnHeader () . '",
 						"defaultContent":
 						"<button class=\"' . $column->getColumnData () . '\"></button>" },';
 					if (! empty ( $column->getJsButtonCallback () )) {
@@ -513,9 +591,8 @@ class StesiTable {
 					}
 				} else {
 					$table .= '{ 
-							
 							"class": "' . $column->getColumnData () . '","data": "' . $column->getColumnData () . '","name":"' . $column->getColumnData () . '",
-							"orderable":'.var_export($column->isOrderable(), true);
+							"orderable":' . var_export ( $column->isOrderable (), true );
 					if (! empty ( $column->getHyperlink () )) {
 						$table .= ',"render": function ( data, type, full, meta ) {
       return \'<a href="' + $column->getHyperlink () + '">Download</a>\';
@@ -570,36 +647,31 @@ class StesiTable {
 		 * Reorder columns if specified and create an ajax call to the columnReorderCallBack if is specified
 		 */
 		if ($this->isColReorderable) {
-				
-						if($this->fixedColumnLeft>0 || $this->fixedColumnRight>0){
-							$table.="
+			
+			if ($this->fixedColumnLeft > 0 || $this->fixedColumnRight > 0) {
+				$table .= "
 									 new $.fn.dataTable.FixedColumns( datatable, {
-									'leftColumns':".$this->fixedColumnLeft.",
-									'rightColumns':".$this->fixedColumnRight."
+									'leftColumns':" . $this->fixedColumnLeft . ",
+									'rightColumns':" . $this->fixedColumnRight . "
 			           } );
 									";
-						}
-						$table .=
-						" new $.fn.dataTable.ColReorder(datatable,{
+			}
+			$table .= " new $.fn.dataTable.ColReorder(datatable,{
 				realtime: 'false'
 				";
-						
-						
-						
-						
-						
-						if (! empty ( $this->columnOrder )) {
-							$table .= ",
+			
+			if (! empty ( $this->columnOrder )) {
+				$table .= ",
 									order: [" . implode ( ",", $this->columnOrder ) . "]";
-						}
-						
-						if($this->fixedColumnLeft>0 || $this->fixedColumnRight>0){
-							$table.="
-						,fixedColumnsLeft:".($this->fixedColumnLeft>0?($this->fixedColumnLeft):"0").",
-						fixedColumnsRight:".($this->fixedColumnRight>0?($this->fixedColumnRight):"0");
-						}
-						if (! empty ( $this->columnReorderCallBack )) {
-							$table .= ",reorderCallback:function(){
+			}
+			
+			if ($this->fixedColumnLeft > 0 || $this->fixedColumnRight > 0) {
+				$table .= "
+						,fixedColumnsLeft:" . ($this->fixedColumnLeft > 0 ? ($this->fixedColumnLeft) : "0") . ",
+						fixedColumnsRight:" . ($this->fixedColumnRight > 0 ? ($this->fixedColumnRight) : "0");
+			}
+			if ($this->stateSaving && ! empty ( $this->columnReorderCallBack )) {
+				$table .= ",reorderCallback:function(){
 										datatable.draw();
 	            		$.ajax({
 									type : 'POST',
@@ -615,12 +687,11 @@ class StesiTable {
 	             				applyStyles(this.node(),this.data());
 	             		} );
 	             	}";
-						}
-						$table .= "
+			}
+			$table .= "
 			});
 						
 			";
-			
 		}
 		$table .= $this->createFunctionColumnStyles ();
 		$table .= "
@@ -780,7 +851,7 @@ class StesiTable {
 				if (! empty ( $class )) {
 					$buttons .= ",className:'" . $class . "'";
 				}
-			
+				
 				$tooltip = $stesiButton->getTooltip ();
 				if (! empty ( $tooltip )) {
 					$buttons .= ",titleAttr:'" . $tooltip . "'";
@@ -826,7 +897,7 @@ class StesiTable {
 	
 	/**
 	 * defaultIndexOrder
-	 * 
+	 *
 	 * @return int
 	 */
 	public function getDefaultIndexOrder() {
@@ -835,7 +906,7 @@ class StesiTable {
 	
 	/**
 	 * defaultIndexOrder
-	 * 
+	 *
 	 * @param int $defaultIndexOrder        	
 	 * @return StesiTable
 	 */
@@ -942,10 +1013,6 @@ class StesiTableButton {
 	 */
 	public function setTooltip($tooltip) {
 		$this->tooltip = $tooltip;
-        return $this;
-    }
-
-
-   
-
+		return $this;
+	}
 }

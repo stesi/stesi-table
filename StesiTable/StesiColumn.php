@@ -19,6 +19,8 @@ class StesiColumn {
 	private $columnHeader="";
 	private $hyperlink;
 	private $orderable=true;
+	private $defaultFilterValue=null;
+	
 	/**
 	 *
 	 * @param string $columnName
@@ -28,6 +30,7 @@ class StesiColumn {
 	 * @param boolean $globalSearcheable
 	 *        	if true, the column is used in global search
 	 */
+		
 	function __construct($columnName, $columnDescription = null, $globalSearcheable = 1) {
 		$this->columnName = $columnName;
 		$this->globalSearcheable = $globalSearcheable;
@@ -43,6 +46,15 @@ class StesiColumn {
 		$this->attributes=array();
 		$this->columnHeader=$this->columnDescription;
 	}
+	
+	public function setDefaultFilterValue($defaultFilterValue){
+		$this->defaultFilterValue=$defaultFilterValue;
+	}
+	
+	public function getDefaultFilterValue(){
+		return $this->defaultFilterValue;
+	}
+	
 	
 	/**
 	 * hyperlink
@@ -297,8 +309,10 @@ class StesiColumn {
 class StesiColumnType {
 	const TextBox = 0;
 	const Select = 1;
+	const MultiSelect = 2;
 	const Number = 3;
 	const Date = 4;
+	const DateRange = 5;
 	const Button = 7;
 }
 /**
