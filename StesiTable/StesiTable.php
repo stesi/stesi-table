@@ -445,6 +445,7 @@ class StesiTable {
 			keys: true,
 			ordering:true,
 			stateSave: true,
+			select: true,
 			stateDuration: 24*60*60,
 			scrollCollapse: true,
 	        scrollX:        true,
