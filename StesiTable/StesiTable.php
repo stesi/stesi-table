@@ -442,7 +442,6 @@ class StesiTable {
 						
 						
 	       processing: true,
-			keys: true,
 			ordering:true,
 			stateSave: true,
 			select: true,
