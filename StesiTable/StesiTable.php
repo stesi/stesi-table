@@ -438,25 +438,32 @@ class StesiTable {
 	
 			        		
 				var datatable=$("#' . $this->id . '").DataTable({
+									
+						
+						
 	       processing: true,
 			keys: true,
 			ordering:true,
 			stateSave: true,
 			stateDuration: 24*60*60,
-			scrollY:800,
 			scrollCollapse: true,
 	        scrollX:        true,
-	        fixedHeader:   true,
 			serverSide : true,';
 		
-		$dom = 'ftl<\"pull-left\"i>p';
+		
+		$dom = "<'row'<'col-sm-6'B><'col-sm-6'f>>\" +
+\"<'row'<'col-sm-12'tr>>\" +
+\"<'row'<'col-sm-8'li><'col-sm-4'p>>";
+		
+		
+		//$dom = 'ftl<\"pull-left\"i>p';
 		$buttons = $this->initializeButtons ();
 		if (! empty ( $buttons )) {
 			
-			$dom = "<\"pull-left\"B>" . $dom;
+			//$dom = "<\"pull-left\"B>" . $dom;
 			$table .= $buttons;
 		}
-		$table .= "dom:'" . $dom . "',";
+		$table .= "dom:\"" . $dom . "\",";
 		$table .= '
 				 "lengthMenu": [ 10, 25, 50,75,100,500,1000],' . (! empty ( $this->defaultIndexOrder ) ? 'order: [[' . $this->defaultIndexOrder . ' , "desc" ]],' : 'order:[[0,"desc"]],') . '"language": {
         	    "search": "",
@@ -570,7 +577,7 @@ class StesiTable {
 						}
 						$table .=
 						" new $.fn.dataTable.ColReorder(datatable,{
-				realtime: 'true'
+				realtime: 'false'
 				";
 						
 						
@@ -589,6 +596,7 @@ class StesiTable {
 						}
 						if (! empty ( $this->columnReorderCallBack )) {
 							$table .= ",reorderCallback:function(){
+										datatable.draw();
 	            		$.ajax({
 									type : 'POST',
 									url : '" . $this->columnReorderCallBack . "',
@@ -598,6 +606,7 @@ class StesiTable {
 	             						dataTableId: '" . $this->id . "'
 									}
 								});
+	             							
 	             		datatable.rows().every( function () {
 	             				applyStyles(this.node(),this.data());
 	             		} );
