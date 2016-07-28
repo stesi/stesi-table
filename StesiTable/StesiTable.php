@@ -630,6 +630,7 @@ class StesiTable {
 			},			        		
 			createdRow: function(row,data,index){
 				applyStyles(row,data);
+		
 			}
 	});
 				';
@@ -775,7 +776,6 @@ class StesiTable {
 				 * Ex data['natura']='MDR'
 				 * EX data['id_articolo']>'10000'
 				 */
-				
 				if (! empty ( $columnStyle->getConditionOperator () )) {
 					$scriptStyle .= "if(data['" . (! empty ( $columnStyle->getOtherColumnId () ) ? $columnStyle->getOtherColumnId () : $column->getColumnData ()) . "']" . $columnStyle->getConditionOperator () . "'" . $columnStyle->getValue () . "'){";
 				} else {
