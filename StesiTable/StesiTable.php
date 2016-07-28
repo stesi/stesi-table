@@ -547,8 +547,11 @@ class StesiTable {
 		}
 		$table .= "dom:\"" . $dom . "\",";
 		$table .= '
-				 "lengthMenu": [ 10, 25, 50,75,100,500,1000],' . (! empty ( $this->defaultIndexOrder ) ? 'order: [[' . $this->defaultIndexOrder . ' , "desc" ]],' : 'order:[[0,"desc"]],') . '"language": {
-        	    "search": "",
+				 "lengthMenu": [ 10, 25, 50,75,100,500,1000],' . (! empty ( $this->defaultIndexOrder ) ? 'order: [[' . $this->defaultIndexOrder . ' , "desc" ]],' : 'order:[[0,"desc"]],') . 
+				 '"language": {
+        	    
+				  search: "<span class=\"input-icon\">_INPUT_<i class=\"glyphicon glyphicon-search primary\"></i></span>",
+        searchPlaceholder: "Ricerca Globale",
         	    "lengthMenu": "_MENU_",
         	    "info": "_PAGES_ Pagine / Totale elementi: _TOTAL_",
         	    "processing": "Caricamento dati in corso...",
@@ -562,7 +565,6 @@ class StesiTable {
     type:"POST",
     data: function ( d ) {
       	d.' . $this->filterFormName . '=$("#' . $this->id . '_form").serializeForm();
-    		
 	}
   }';
 		// $("#'.$this->id.'_form").serialize();
@@ -610,27 +612,27 @@ class StesiTable {
 		 */
 		$table .= '
         ],
-				
+				createdRow:function(row,data){
+				row = applyStyles(row,data);
+				console.log(row);
+				},
 				initComplete: function() {
 				
+						datatable.draw();
 						var api = this.api();
 				  $("#' . $this->id . '_filter input").unbind();
 			        $("#' . $this->id . '_filter input").bind("keyup", function(e) {
 			          if(e.keyCode == 13 || (e.keyCode==8 && this.value=="")) {
 			        	  api.search( this.value ).draw();
 			            }
-			          
 			        });
-			       ';
+			       
+			   ';
 		if (! empty ( $this->globalFilter )) {
 			$table .= '
 					$("#' . $this->id . '_filter input").val("' . $this->globalFilter . '");';
 		}
 		$table .= '
-			},			        		
-			createdRow: function(row,data,index){
-				applyStyles(row,data);
-		
 			}
 	});
 				';
@@ -687,6 +689,8 @@ class StesiTable {
 	             		datatable.rows().every( function () {
 	             				applyStyles(this.node(),this.data());
 	             		} );
+	             								
+				 
 	             	}";
 			}
 			$table .= "
@@ -697,18 +701,6 @@ class StesiTable {
 		$table .= $this->createFunctionColumnStyles ();
 		$table .= "
 					
-					 // Restore state
-        var state = datatable.state.loaded();
-        if (state) {
-            datatable.columns().eq(0).each(function (colIdx) {
-                var colSearch = state.columns[colIdx].search;
- 
-                if (colSearch.search) {
-                    $('input', datatable.column(colIdx).footer()).val(colSearch.search);
-                }
-            });
-        }	
-
 			       $('#" . $this->id . "_form input').unbind();
 			        $('#" . $this->id . "_form input').bind('keyup', function(e) {
 			          if(e.keyCode == 13 || (e.keyCode==8 && this.value=='')) {
@@ -731,14 +723,15 @@ class StesiTable {
 	private function createFunctionColumnStyles() {
 		$script = "function applyStyles(row,data)
 		{
+				var elemento = $(row);
 				
 				";
 		foreach ( $this->rowClasses as $class ) {
-			$script .= "$(row).addClass('" . $class . "');";
+			$script .= "elemento.addClass('" . $class . "');";
 		}
 		foreach ( $this->rowDataAttributes as $key => $value ) {
 			$script .= "
-					$(row).data('" . $key . "',data['" . $value . "']);";
+					elemento.data('" . $key . "',data['" . $value . "']);";
 		}
 		
 		$tableColums = $this->getColumns ();
@@ -751,7 +744,7 @@ class StesiTable {
 			$scriptStyle = "";
 			$selector = '$("td.' . $column->getColumnData () . ' ", row)';
 			if ($column->getColumnType () == StesiColumnType::Button) {
-				$selector = '$("td.' . $column->getColumnData () . ' button", row)';
+				$selector = '$("td.' . $column->getColumnData () . ' button", elemento)';
 			}
 			
 			foreach ( $column->getDataAttributes () as $key => $value ) {
@@ -817,7 +810,7 @@ class StesiTable {
 			$script .= $scriptStyle . ";";
 		}
 		
-		$script .= "}";
+		$script .= "return elemento;}";
 		return $script;
 	}
 	private function initializeButtons() {
