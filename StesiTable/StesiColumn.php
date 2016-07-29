@@ -16,7 +16,6 @@ class StesiColumn {
 	private $dataAttributes=array();
 	private $customAttributes=array();
 	private $hidden=false;
-	private $columnHeader="";
 	private $hyperlink;
 	private $orderable=true;
 	private $defaultFilterValue=null;
@@ -35,7 +34,7 @@ class StesiColumn {
 		$this->columnName = $columnName;
 		$this->globalSearcheable = $globalSearcheable;
 		$this->stesiColumnStyles = array ();
-		if ($columnDescription)
+		if ($columnDescription!==null)
 			$this->columnDescription = $columnDescription;
 		else
 			$this->columnDescription = $columnName;
