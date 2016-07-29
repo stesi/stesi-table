@@ -1040,4 +1040,5 @@ class StesiTableButton {
 		$this->tooltip = $tooltip;
 		return $this;
 	}
+	
 }
