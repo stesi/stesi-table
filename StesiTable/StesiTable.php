@@ -51,6 +51,7 @@ class StesiTable {
 	private $form;
 	private $datatableButtons;
 	private $stesiTableButtons;
+	private $toolsButtons;
 	private $filterFormName;
 	private $globalFilter = "";
 	private $rowDataAttributes = array ();
@@ -88,6 +89,7 @@ class StesiTable {
 		$this->isColReorderable = false;
 		$this->customButtons = array ();
 		$this->datatableButtons = array ();
+		$this->toolsButtons = array ();
 		$this->fixedColumnLeft = $this->fixedColumnRight = 0;
 		if ($useForm) {
 			$this->form = new Form ( $this->id . "_form" );
@@ -437,61 +439,21 @@ class StesiTable {
 		return $this->stesiTableButtons;
 	}
 	
+	public function setToolsButtons(array $toolsButtons) {
+		$this->toolsButtons = $toolsButtons;
+		return $this;
+	}
+	public function getToolsButtons() {
+		return $this->toolsButtons;
+	}
+	
+	
 	public function addDatatableClasses($string)
 	{
 		$this->tableClasses = $string;
 		return $this;
 	}
-	
-	public static function getValueRequestSession($key,$value=null,$default = "",$pageId=null) {
-		$hash = $_REQUEST ['hash'];
-		$val="";
-		if(!empty($value)){
-			
-			$val = isset ( $_REQUEST [$key][$value] ) ? $_REQUEST [$key][$value]
-			:
-			(!empty($pageId)?
-					(isset ( $_SESSION ["$hash"][$pageId] [$key][$value] ) ? $_SESSION ["$hash"][$pageId] [$key][$value] : $default)
-					:(isset ( $_SESSION ["$hash"] [$key][$value] ) ? $_SESSION ["$hash"] [$key][$value] : $default)
-					);
-			if(!empty($pageId)){
-				if(!isset($_SESSION["$hash"][$pageId]) || !is_array($_SESSION["$hash"][$pageId])){
-					$_SESSION["$hash"][$pageId]=array();
-				}
-				if(!isset($_SESSION["$hash"][$pageId][$key]) || !is_array($_SESSION["$hash"][$pageId][$key])){
-					$_SESSION["$hash"][$pageId][$key]=array();
-				}
-				
-				$_SESSION ["$hash"][$pageId] [$key][$value]=$val;
-			}else{
-				if(!isset($_SESSION["$hash"][$key]) || !is_array($_SESSION["$hash"][$key])){
-					$_SESSION["$hash"][$key]=array();
-				}
-				$_SESSION ["$hash"][$key][$value]=$val;
-				
-			}	
-			
-		}else{
-			$val = isset ( $_REQUEST [$key] ) ? $_REQUEST [$key]
-			:
-			(!empty($pageId)?
-					(isset ( $_SESSION ["$hash"][$pageId] [$key] ) ? $_SESSION ["$hash"][$pageId] [$key] : $default)
-					:(isset ( $_SESSION ["$hash"] [$key] ) ? $_SESSION ["$hash"] [$key] : $default)
-					);
-			if(!empty($pageId)){
-				if(!isset($_SESSION["$hash"][$pageId]) || !is_array($_SESSION["$hash"][$pageId])){
-					$_SESSION["$hash"][$pageId]=array();
-				}
-				$_SESSION ["$hash"][$pageId] [$key]=$val;
-			}else{
-				$_SESSION ["$hash"][$key]=$val;
-			}
-			
-			
-		}
-		
-		return $val;
-	}	
+
 	private function createJsScript($ajaxCallBack) {
 		$tableColums = $this->getColumns ();
 		
@@ -555,7 +517,7 @@ class StesiTable {
 						
 	       processing: true,
 			ordering:true,
-			stateSave: ' . ($this->stateSaving == true ? "true" : "false") . ',
+			stateSave: false,
 			select: true,
 			stateDuration: 24*60*60,
 			scrollCollapse: true,
@@ -619,7 +581,7 @@ class StesiTable {
 						"<button class=\"' . $column->getColumnData () . '\"></button>" },';
 					if (! empty ( $column->getJsButtonCallback () )) {
 						array_push ( $buttonsFunction, array (
-								"class" => $column->getColumnName ( false ),
+								"class" => $column->getColumnName (  ),
 								"function" => $column->getJsButtonCallback () 
 						) );
 					}
@@ -646,7 +608,7 @@ class StesiTable {
         ],
 				createdRow:function(row,data){
 				row = applyStyles(row,data);
-				console.log(row);
+				//console.log(row);
 				},
 				initComplete: function() {
 				
@@ -668,6 +630,8 @@ class StesiTable {
 			}
 	});
 				';
+		
+		
 		if (! empty ( $buttonsFunction )) {
 			foreach ( $buttonsFunction as $external ) {
 				$table .= "
@@ -846,20 +810,61 @@ class StesiTable {
 		return $script;
 	}
 	private function initializeButtons() {
-		if (! empty ( $this->getDatatableButtons () ) || ! empty ( $this->getStesiButtons () )) {
-			$buttons = "";
+		$buttons = "";
+		
+		if (! empty ( $this->getDatatableButtons () ) || !empty($this->getToolsButtons()) ) {
+			$buttons="{
+					extend:'collection',
+					init :function (e,dt){
+						dt.context.id='tools_button';
+					},
+					text:'<i class=\"fa fa-gears\"></i>',
+					fade:false,
+					buttons:[";
+			$datatableButtons="";
 			foreach ( $this->getDatatableButtons () as $datatableButton ) {
 				if (empty ( $datatableButton ['text'] ) && empty ( $datatableButton ['titleAttr'] )) {
-					$buttons .= ",'" . $datatableButton ['name'] . "'";
+					$datatableButtons .= "{'" . $datatableButton ['name'] . "'},";
 				} else {
-					$buttons .= ",{
+					$datatableButtons .= "{
 							extend: '" . $datatableButton ['name'] . "',
 							text: '" . $datatableButton ['text'] . "',
 							titleAttr:'" . $datatableButton ['titleAttr'] . "'
-							}";
+							},";
 				}
 			}
-			
+			if(! empty ( $this->getToolsButtons () )){
+				foreach ( $this->getToolsButtons () as $toolsButton ) {
+					$text = ! empty ( $toolsButton->getText () ) ? $toolsButton->getText () : $toolsButton->getId ();
+					$datatableButtons .= ",{
+					text:'" . $text . "',
+					init :function (e,dt){
+						dt.context.id='" . $toolsButton->getId () . "'";
+					foreach ( $toolsButton->getCustomAttributes () as $key => $value ) {
+						$datatableButtons .= ",dt.data('" . $key . "','" . $value . "')";
+					}
+					$datatableButtons .= "
+					}
+					";
+					$class = $toolsButton->getClass ();
+					if (! empty ( $class )) {
+						$datatableButtons .= ",className:'" . $class . "'";
+					}
+					
+					$tooltip = $toolsButton->getTooltip ();
+					if (! empty ( $tooltip )) {
+						$datatableButtons .= ",titleAttr:'" . $tooltip . "'";
+					}
+					$action = $toolsButton->getAction ();
+					if (! empty ( $action )) {
+						$datatableButtons .= ",action:function(){" . $action . "();}";
+					}
+					$datatableButtons .= "},";
+				}
+			}
+			$buttons.=substr($datatableButtons,0,strlen($datatableButtons)-1)."]}";
+		}
+		if(! empty ( $this->getStesiButtons () )){
 			foreach ( $this->getStesiButtons () as $stesiButton ) {
 				$text = ! empty ( $stesiButton->getText () ) ? $stesiButton->getText () : $stesiButton->getId ();
 				$buttons .= ",{
@@ -883,12 +888,13 @@ class StesiTable {
 				}
 				$action = $stesiButton->getAction ();
 				if (! empty ( $action )) {
-					$buttons .= ",action:'" . $action . "'";
+					$buttons .= ",action:function(){" . $action . "();}";
 				}
 				$buttons .= "}";
 			}
-			
-			$buttons = 'buttons: [' . substr ( $buttons, 1 ) . "],";
+		}
+		if(!empty($buttons)){
+			$buttons = 'buttons: [' . $buttons . "],";
 			return $buttons;
 		} else
 			return "";
@@ -939,6 +945,57 @@ class StesiTable {
 		$this->defaultIndexOrder = $defaultIndexOrder;
 		return $this;
 	}
+	
+
+	private function getValueRequestSession($key,$value=null,$default = "",$pageId=null) {
+		$hash = $_REQUEST ['hash'];
+		$val="";
+		if(!empty($value)){
+				
+			$val = isset ( $_REQUEST [$key][$value] ) ? $_REQUEST [$key][$value]
+			:
+			(!empty($pageId)?
+					(isset ( $_SESSION ["$hash"][$pageId] [$key][$value] ) ? $_SESSION ["$hash"][$pageId] [$key][$value] : $default)
+					:(isset ( $_SESSION ["$hash"] [$key][$value] ) ? $_SESSION ["$hash"] [$key][$value] : $default)
+					);
+			if(!empty($pageId)){
+				if(!isset($_SESSION["$hash"][$pageId]) || !is_array($_SESSION["$hash"][$pageId])){
+					$_SESSION["$hash"][$pageId]=array();
+				}
+				if(!isset($_SESSION["$hash"][$pageId][$key]) || !is_array($_SESSION["$hash"][$pageId][$key])){
+					$_SESSION["$hash"][$pageId][$key]=array();
+				}
+	
+				$_SESSION ["$hash"][$pageId] [$key][$value]=$val;
+			}else{
+				if(!isset($_SESSION["$hash"][$key]) || !is_array($_SESSION["$hash"][$key])){
+					$_SESSION["$hash"][$key]=array();
+				}
+				$_SESSION ["$hash"][$key][$value]=$val;
+	
+			}
+				
+		}else{
+			$val = isset ( $_REQUEST [$key] ) ? $_REQUEST [$key]
+			:
+			(!empty($pageId)?
+					(isset ( $_SESSION ["$hash"][$pageId] [$key] ) ? $_SESSION ["$hash"][$pageId] [$key] : $default)
+					:(isset ( $_SESSION ["$hash"] [$key] ) ? $_SESSION ["$hash"] [$key] : $default)
+					);
+			if(!empty($pageId)){
+				if(!isset($_SESSION["$hash"][$pageId]) || !is_array($_SESSION["$hash"][$pageId])){
+					$_SESSION["$hash"][$pageId]=array();
+				}
+				$_SESSION ["$hash"][$pageId] [$key]=$val;
+			}else{
+				$_SESSION ["$hash"][$key]=$val;
+			}
+				
+				
+		}
+	
+		return $val;
+	}
 }
 class StesiTableButton {
 	private $text;
@@ -951,6 +1008,7 @@ class StesiTableButton {
 		$this->id = $id;
 		$this->customAttributes = array ();
 	}
+
 	public function getId() {
 		return $this->id;
 	}

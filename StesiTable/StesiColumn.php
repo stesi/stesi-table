@@ -162,9 +162,7 @@ class StesiColumn {
 		if(!empty($this->alias))
 			return $this->alias;
 		else {
-			if(!$dot){
-				return str_replace ( ".", "", $this->columnName );
-			}else 
+			
 				return $this->columnName;
 		}
 	}
