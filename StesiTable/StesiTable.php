@@ -55,6 +55,8 @@ class StesiTable {
 	private $globalFilter = "";
 	private $rowDataAttributes = array ();
 	private $rowClasses = array ();
+	private $tableClasses = "";
+	
 	function addRowClass($className) {
 		$this->rowClasses [] = $className;
 		return $this;
@@ -368,8 +370,9 @@ class StesiTable {
 			
 			$this->addFilterButton ( "filter_button_bottom" );
 		}
+		$classi_da_aggiungere = $this->tableClasses;
 		$table = "
-				<table id=\"" . $this->id . "\"  class='table table-striped table-bordered table-hover  dataTable nowrap' cellspacing='0'
+				<table id=\"" . $this->id . "\"  class='table table-striped table-bordered table-hover  dataTable nowrap ".$classi_da_aggiungere."' cellspacing='0'
                    width='100%'>";
 		
 		$tableColums = $this->getColumns ();
@@ -438,6 +441,13 @@ class StesiTable {
 	public function getStesiButtons() {
 		return $this->stesiTableButtons;
 	}
+	
+	public function addDatatableClasses($string)
+	{
+		$this->tableClasses = $string;
+		return $this;
+	}
+	
 	private function getValueRequestSession($key, $value = null, $default = "", $pageId = null) {
 		if (isset ( $_REQUEST ['hash'] ))
 			$hash = $_REQUEST ['hash'];
