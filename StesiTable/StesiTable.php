@@ -393,7 +393,7 @@ class StesiTable {
 		$th = "<tr>";
 		foreach ( $tableColums as $column ) {
 			if (! $column->isHidden ()) {
-					$th .= "<th data-filter_id='".$column->getColumnName()."'>" . $column->getColumnDescription () . "</th>";
+					$th .= "<th data-filter_id='".$column->getColumnName(false)."'>" . $column->getColumnDescription () . "</th>";
 				
 			}
 		}
@@ -517,7 +517,7 @@ class StesiTable {
 						
 	       processing: true,
 			ordering:true,
-			stateSave: false,
+			stateSave: ' . ($this->stateSaving == true ? "true" : "false") . ',
 			select: true,
 			stateDuration: 24*60*60,
 			scrollCollapse: true,
@@ -581,7 +581,7 @@ class StesiTable {
 						"<button class=\"' . $column->getColumnData () . '\"></button>" },';
 					if (! empty ( $column->getJsButtonCallback () )) {
 						array_push ( $buttonsFunction, array (
-								"class" => $column->getColumnName (  ),
+								"class" => $column->getColumnName ( false ),
 								"function" => $column->getJsButtonCallback () 
 						) );
 					}

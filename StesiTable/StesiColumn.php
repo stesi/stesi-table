@@ -100,10 +100,10 @@ class StesiColumn {
 // 	return ! empty ( $this->alias ) ? str_replace ( ".", "", $this->alias ) : str_replace ( ".", "", $this->columnName );
 // 	}
 	public function getColumnName($dot = true) {
-		//if ($dot)
+		if ($dot)
 			return $this->columnName;
-// 		else
-// 			return str_replace ( ".", "", $this->columnName );
+ 		else
+ 			return str_replace ( ".", "", $this->columnName );
 	}
 	
 	/**
@@ -159,10 +159,12 @@ class StesiColumn {
 	
 	public function getColumnData($dot=false){
 		
-		if(!empty($this->alias))
+	if(!empty($this->alias))
 			return $this->alias;
 		else {
-			
+			if(!$dot){
+				return str_replace ( ".", "", $this->columnName );
+			}else 
 				return $this->columnName;
 		}
 	}
