@@ -44,7 +44,6 @@ class StesiColumn {
 		$this->options = array ();
 		$this->properties = array ();
 		$this->attributes=array();
-		$this->columnHeader=$this->columnDescription;
 	}
 	
 	public function setDefaultFilterValue($defaultFilterValue){
@@ -88,24 +87,6 @@ class StesiColumn {
 	
 	public function getCustomAttributes(){
 		return $this->customAttributes;
-	}
-	
-	/**
-	 * columnHeader
-	 * @return string
-	 */
-	public function getColumnHeader(){
-		return $this->columnHeader;
-	}
-	
-	/**
-	 * columnHeader
-	 * @param string $columnHeader
-	 * @return StesiColumn
-	 */
-	public function setColumnHeader($columnHeader){
-		$this->columnHeader = $columnHeader;
-		return $this;
 	}
 	
 	/**
