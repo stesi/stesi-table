@@ -589,12 +589,6 @@ class StesiTable {
 					$table .= '{ 
 							"class": "' . $column->getColumnData () . '","data": "' . $column->getColumnData () . '","name":"' . $column->getColumnData () . '",
 							"orderable":' . var_export ( $column->isOrderable (), true );
-					if (! empty ( $column->getHyperlink () )) {
-						$table .= ',"render": function ( data, type, full, meta ) {
-      return \'<a href="' + $column->getHyperlink () + '">Download</a>\';
-    		},';
-					}
-					
 					$table .= '},';
 				}
 			}
@@ -606,9 +600,8 @@ class StesiTable {
 		 */
 		$table .= '
         ],
-				createdRow:function(row,data){
-				row = applyStyles(row,data);
-				//console.log(row);
+				rowCallback:function(row,data){
+					row = applyStyles(row,data);
 				},
 				initComplete: function() {
 				
@@ -681,7 +674,6 @@ class StesiTable {
 	             						dataTableId: '" . $this->id . "'
 									}
 								});
-	             							
 	             		datatable.rows().every( function () {
 	             				applyStyles(this.node(),this.data());
 	             		} );
@@ -732,6 +724,7 @@ class StesiTable {
 		
 		$tableColums = $this->getColumns ();
 		foreach ( $tableColums as $column ) {
+			
 			
 			/*
 			 * Apply column data-attributes
@@ -791,13 +784,19 @@ class StesiTable {
 				}
 				
 				$scriptStyle .= ";";
+				
+						
 				if (count ( $columnStyle->getHtml () ) > 0) {
+					if($column->getColumnType()!=StesiColumnType::Button)
+						$scriptStyle.=$selector.".html(data['".$column->getColumnData(false)."']);";
+					else 
+						$scriptStyle.=$selector.".html('')";
 					foreach ( $columnStyle->getHtml () as $html ) {
 						$scriptStyle .= '$("' . $html . '").prependTo($("td.' . $column->getColumnData () . '", row));';
 					}
 				}
 				if ($columnStyle->getIcon ()) {
-					$scriptStyle .= $selector . '.append("' . $columnStyle->getIcon () . '");';
+					$scriptStyle .= $selector . '.html("' . $columnStyle->getIcon () . '");';
 				}
 				$scriptStyle .= "} else ";
 			}
