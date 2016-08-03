@@ -294,6 +294,7 @@ class StesiColumnType {
 	const Date = 4;
 	const DateRange = 5;
 	const Button = 7;
+	const CustomColumn=8;
 }
 /**
  * Define style of the column of the DataTable

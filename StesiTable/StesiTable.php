@@ -133,7 +133,7 @@ class StesiTable {
 	public function addColumn(StesiColumn $stesiColumn) {
 		$this->columns [$stesiColumn->getColumnName ()] = $stesiColumn;
 		if ($this->form) {
-			if (! $stesiColumn->isHidden () && $stesiColumn->getColumnType () != StesiColumnType::Button) {
+			if ($stesiColumn->getColumnType()!=StesiColumnType::CustomColumn && !$stesiColumn->isHidden () && $stesiColumn->getColumnType () != StesiColumnType::Button) {
 				// Se è settato a true, creo un elemento della form instanziando dinamicamente un elemento PFBC e aggiungendolo alla form
 				$class = new \ReflectionClass ( "PFBC\Element\\" . (array_flip ( (new \ReflectionClass ( "Stesi\StesiTable\StesiColumnType" ))->getConstants () ) [$stesiColumn->getColumnType ()]) );
 				if (! $class)
@@ -309,7 +309,7 @@ class StesiTable {
 		$tableColumnsNames = array ();
 		
 		foreach ( $this->columns as $column ) {
-			if ($column->getColumnType () != StesiColumnType::Button) {
+			if ($column->getColumnType()!=StesiColumnType::CustomColumn && $column->getColumnType () != StesiColumnType::Button) {
 				if (! $onlyGlobalSerchable) {
 					$tableColumnsNames [] = array (
 							"name" => $column->getColumnName (),
@@ -512,9 +512,6 @@ class StesiTable {
 	
 			        		
 				var datatable=$("#' . $this->id . '").DataTable({
-									
-						
-						
 	       processing: true,
 			ordering:true,
 			stateSave: ' . ($this->stateSaving == true ? "true" : "false") . ',
@@ -523,6 +520,7 @@ class StesiTable {
 			scrollCollapse: true,
 			scrollY: 800,
 	        scrollX:        true,
+			fixedHeader:true,
 			serverSide : true,';
 		
 		$dom = "<'row'<'col-sm-6'B><'col-sm-6'f>>\" +
@@ -567,7 +565,7 @@ class StesiTable {
 		foreach ( $tableColums as $column ) {
 			// Se è nascosta, la colonna non deve essere visualizzata
 			if (! $column->isHidden ()) {
-				if ($column->getColumnType () == StesiColumnType::Button) {
+				if ($column->getColumnType () == StesiColumnType::Button || $column->getColumnType()==StesiColumnType::CustomColumn ) {
 					
 					$table .= '{ 	
 						"class":"' . $column->getColumnData () . '",
@@ -576,14 +574,19 @@ class StesiTable {
 					if(!empty($column->getColumnDescription())){
 						$table.='"title":"' . $column->getColumnDescription () . '",';
 					}
+					if($column->getColumnType()==StesiColumnType::Button){
+							$table.='
+							"defaultContent":
+							"<button class=\"' . $column->getColumnData () . '\"></button>" },';
+						if (! empty ( $column->getJsButtonCallback () )) {
+							array_push ( $buttonsFunction, array (
+									"class" => $column->getColumnName ( false ),
+									"function" => $column->getJsButtonCallback () 
+							) );
+						}
+					}else{
 						$table.='
-						"defaultContent":
-						"<button class=\"' . $column->getColumnData () . '\"></button>" },';
-					if (! empty ( $column->getJsButtonCallback () )) {
-						array_push ( $buttonsFunction, array (
-								"class" => $column->getColumnName ( false ),
-								"function" => $column->getJsButtonCallback () 
-						) );
+							"defaultContent":""},';
 					}
 				} else {
 					$table .= '{ 
@@ -787,10 +790,13 @@ class StesiTable {
 				
 						
 				if (count ( $columnStyle->getHtml () ) > 0) {
-					if($column->getColumnType()!=StesiColumnType::Button)
+					if($column->getColumnType()!=StesiColumnType::Button
+							&&
+					   $column->getColumnType()!=StesiColumnType::CustomColumn
+							)
 						$scriptStyle.=$selector.".html(data['".$column->getColumnData(false)."']);";
 					else 
-						$scriptStyle.=$selector.".html('')";
+						$scriptStyle.=$selector.".html('');";
 					foreach ( $columnStyle->getHtml () as $html ) {
 						$scriptStyle .= '$("' . $html . '").prependTo($("td.' . $column->getColumnData () . '", row));';
 					}
