@@ -53,6 +53,7 @@ class StesiColumn {
 		return $this->defaultFilterValue;
 	}
 	
+
 	
 	/**
 	 * hyperlink
@@ -289,10 +290,8 @@ class StesiColumn {
 class StesiColumnType {
 	const TextBox = 0;
 	const Select = 1;
-	const MultiSelect = 2;
 	const Number = 3;
 	const Date = 4;
-	const DateRange = 5;
 	const Button = 7;
 	const CustomColumn=8;
 }
@@ -309,6 +308,7 @@ class StesiColumnStyle {
 	private $otherColumnId;
 	private $visibility=true;
 	private $icon="";
+	private $booleanData=false;
 	
 	/**
 	 *
@@ -431,6 +431,12 @@ class StesiColumnStyle {
         return $this;
     }
 
+    public function hasBooleanData(){
+    	return $this->booleanData;
+    }
   
+    public function setBooleanData($booleanData){
+    	$this->booleanData=$booleanData;
+    }
 
 }

@@ -805,7 +805,7 @@ class StesiTable {
 					$scriptStyle .= '.html("<p class=\'' . $columnStyle->getPClass () . '\' style=\'width:100%\;margin:1px;\'>"+ data[\'' . $column->getColumnData () . '\']+"</p>")';
 				}
 				$scriptStyle .= ";";
-
+				
 				if (! $columnStyle->getVisibility ()) {
 					$scriptStyle .= '$("td.' . $column->getColumnData () . '", row).html("")';
 				}
@@ -828,6 +828,13 @@ class StesiTable {
 				if ($columnStyle->getIcon ()) {
 					$scriptStyle .= $selector . '.html("' . $columnStyle->getIcon () . '");';
 				}
+				
+				if($columnStyle->hasBooleanData()){
+					$scriptStyle.="if(data['" . (! empty ( $columnStyle->getOtherColumnId () ) ? $columnStyle->getOtherColumnId () : $column->getColumnData ()) . "']=='1'){";
+					$scriptStyle.=$selector.".html('<i class=\"fa fa-check\"></i>');";						
+					$scriptStyle.="}else{".$selector.".html('')}";
+				}
+				
 				$scriptStyle .= "} else ";
 			}
 			if (! empty ( $scriptStyle ))
