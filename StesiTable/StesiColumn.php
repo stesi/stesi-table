@@ -19,7 +19,7 @@ class StesiColumn {
 	private $hyperlink;
 	private $orderable=true;
 	private $defaultFilterValue=null;
-	
+		
 	/**
 	 *
 	 * @param string $columnName
