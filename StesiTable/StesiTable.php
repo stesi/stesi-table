@@ -406,7 +406,10 @@ class StesiTable {
 		$th = "<tr>";
 		foreach ( $tableColums as $column ) {
 			if (! $column->isHidden ()) {
-				$th .= "<th data-filter_id='".$column->getColumnName(false)."'>" . $column->getColumnDescription () . "</th>";
+				if($column->getColumnType()!=StesiColumnType::CustomColumn)
+					$th .= "<th data-filter_id='".$column->getColumnData(false)."'>" . $column->getColumnDescription () . "</th>";
+				else 
+					$th .= "<th></th>";
 
 			}
 		}
