@@ -530,7 +530,7 @@ class StesiTable {
 				var datatable=$("#' . $this->id . '").DataTable({
 	       processing: true,
 			ordering:true,
-			stateSave: ' . ($this->stateSaving == true ? "true" : "false") . ',
+			stateSave:false,
 			select: true,
 			stateDuration: 24*60*60,
 			scrollCollapse: true,
