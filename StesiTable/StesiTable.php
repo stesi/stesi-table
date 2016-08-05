@@ -57,6 +57,8 @@ class StesiTable {
 	private $rowDataAttributes = array ();
 	private $tableClasses = "";
 	private $rowStyles=array();
+	private $displayStart;
+	private $displayLength;
 	private $rowClasses = array ();
 	
 	function addRowClass($className) {
@@ -76,6 +78,21 @@ class StesiTable {
 	public function getStateSaving() {
 		return $this->stateSaving;
 	}
+	
+	public function setDisplayLength($displayLength) {
+		$this->displayLength = $displayLength;
+	}
+	public function getDisplayLength() {
+		return $this->displayLength;
+	}
+	
+	public function setDisplayStart($displayStart) {
+		$this->displayStart = $displayStart;
+	}
+	public function getDisplayStart() {
+		return $this->displayStart;
+	}
+	
 	public function addRowDataAttributes($attributeKey, $attributeValue) {
 		$this->rowDataAttributes [$attributeKey] = str_replace ( ".", "", $attributeValue );
 	}
@@ -538,7 +555,12 @@ class StesiTable {
 	        scrollX:        true,
 			fixedHeader:true,
 			serverSide : true,';
-
+		if(!empty($this->displayLength)){
+			$table.="displayLength:".$this->displayLength.",";
+		}
+		if(!empty($this->displayStart)){
+			$table.="displayStart:".$this->displayStart.",";
+		}
 		$dom = "<'row'<'col-sm-6'B><'col-sm-6'f>>\" +
 \"<'row'<'col-sm-12'tr>>\" +
 \"<'row'<'col-sm-8'li><'col-sm-4'p>>";
@@ -884,115 +906,23 @@ class StesiTable {
 		return $script;
 	}
 
-	private function initializeButtons() {
-		$buttons = "";
-	
-		if (! empty ( $this->getDatatableButtons () ) || !empty($this->getToolsButtons()) ) {
-			$buttons="";
-			foreach ( $this->getDatatableButtons () as $datatableButton ) {
-				if(empty($datatableButton['text']) && empty($datatableButton['titleAttr'])){
-					$buttons .= ",'" . $datatableButton['name'] . "'";
-				}else{
-					$buttons.=",{
-							extend: '".$datatableButton['name']."',
-							text: '".$datatableButton['text']."',
-							titleAttr:'".$datatableButton['titleAttr']."'
-							}";
-				}
-				
-			}
-		}
-		if(! empty ( $this->getStesiButtons () )){
-			foreach ( $this->getStesiButtons () as $stesiButton ) {
-				$text = ! empty ( $stesiButton->getText () ) ? $stesiButton->getText () : $stesiButton->getId ();
-				$buttons .= ",{
-					text:'" . $text . "',
-					init :function (e,dt){
-						dt.context.id='" . $stesiButton->getId () . "'";
-				foreach ( $stesiButton->getCustomAttributes () as $key => $value ) {
-					$buttons .= ",dt.data('" . $key . "','" . $value . "')";
-				}
-				$buttons .= "
-					}
-					";
-				$class = $stesiButton->getClass ();
-				if (! empty ( $class )) {
-					$buttons .= ",className:'" . $class . "'";
-				}
-	
-				$tooltip = $stesiButton->getTooltip ();
-				if (! empty ( $tooltip )) {
-					$buttons .= ",titleAttr:'" . $tooltip . "'";
-				}
-				$action = $stesiButton->getAction ();
-				if (! empty ( $action )) {
-					$buttons .= ",action:function(){" . $action . "();}";
-				}
-				$buttons .= "}";
-			}
-		}
-		if(!empty($buttons)){
-			$buttons = 'buttons: [' . $buttons . "],";
-			return $buttons;
-		} else
-			return "";
-	}
-	
-
 // 	private function initializeButtons() {
 // 		$buttons = "";
-
+	
 // 		if (! empty ( $this->getDatatableButtons () ) || !empty($this->getToolsButtons()) ) {
-// 			$buttons="{
-// 					extend:'collection',
-// 					init :function (e,dt){
-// 						dt.context.id='tools_button';
-// 					},
-// 					text:'<i class=\"fa fa-gears\"></i>',
-// 					fade:false,
-// 					buttons:[";
-// 			$datatableButtons="";
+// 			$buttons="";
 // 			foreach ( $this->getDatatableButtons () as $datatableButton ) {
-// 				if (empty ( $datatableButton ['text'] ) && empty ( $datatableButton ['titleAttr'] )) {
-// 					$datatableButtons .= "{'" . $datatableButton ['name'] . "'},";
-// 				} else {
-// 					$datatableButtons .= "{
-// 							extend: '" . $datatableButton ['name'] . "',
-// 							text: '" . $datatableButton ['text'] . "',
-// 							titleAttr:'" . $datatableButton ['titleAttr'] . "'
-// 							},";
+// 				if(empty($datatableButton['text']) && empty($datatableButton['titleAttr'])){
+// 					$buttons .= ",'" . $datatableButton['name'] . "'";
+// 				}else{
+// 					$buttons.=",{
+// 							extend: '".$datatableButton['name']."',
+// 							text: '".$datatableButton['text']."',
+// 							titleAttr:'".$datatableButton['titleAttr']."'
+// 							}";
 // 				}
+				
 // 			}
-// 			if(! empty ( $this->getToolsButtons () )){
-// 				foreach ( $this->getToolsButtons () as $toolsButton ) {
-// 					$text = ! empty ( $toolsButton->getText () ) ? $toolsButton->getText () : $toolsButton->getId ();
-// 					$datatableButtons .= ",{
-// 					text:'" . $text . "',
-// 					init :function (e,dt){
-// 						dt.context.id='" . $toolsButton->getId () . "'";
-// 					foreach ( $toolsButton->getCustomAttributes () as $key => $value ) {
-// 						$datatableButtons .= ",dt.data('" . $key . "','" . $value . "')";
-// 					}
-// 					$datatableButtons .= "
-// 					}
-// 					";
-// 					$class = $toolsButton->getClass ();
-// 					if (! empty ( $class )) {
-// 						$datatableButtons .= ",className:'" . $class . "'";
-// 					}
-						
-// 					$tooltip = $toolsButton->getTooltip ();
-// 					if (! empty ( $tooltip )) {
-// 						$datatableButtons .= ",titleAttr:'" . $tooltip . "'";
-// 					}
-// 					$action = $toolsButton->getAction ();
-// 					if (! empty ( $action )) {
-// 						$datatableButtons .= ",action:function(){" . $action . "();}";
-// 					}
-// 					$datatableButtons .= "},";
-// 				}
-// 			}
-// 			$buttons.=substr($datatableButtons,0,strlen($datatableButtons)-1)."]}";
 // 		}
 // 		if(! empty ( $this->getStesiButtons () )){
 // 			foreach ( $this->getStesiButtons () as $stesiButton ) {
@@ -1011,7 +941,7 @@ class StesiTable {
 // 				if (! empty ( $class )) {
 // 					$buttons .= ",className:'" . $class . "'";
 // 				}
-
+	
 // 				$tooltip = $stesiButton->getTooltip ();
 // 				if (! empty ( $tooltip )) {
 // 					$buttons .= ",titleAttr:'" . $tooltip . "'";
@@ -1029,6 +959,98 @@ class StesiTable {
 // 		} else
 // 			return "";
 // 	}
+	
+
+	private function initializeButtons() {
+		$buttons = "";
+
+		if (! empty ( $this->getDatatableButtons () ) || !empty($this->getToolsButtons()) ) {
+			$buttons="{
+					extend:'collection',
+					init :function (e,dt){
+						dt.context.id='tools_button';
+					},
+					text:'<i class=\"fa fa-gears\"></i>',
+					fade:false,
+					buttons:[";
+			$datatableButtons="";
+			foreach ( $this->getDatatableButtons () as $datatableButton ) {
+				if (empty ( $datatableButton ['text'] ) && empty ( $datatableButton ['titleAttr'] )) {
+					$datatableButtons .= "{'" . $datatableButton ['name'] . "'},";
+				} else {
+					$datatableButtons .= "{
+							extend: '" . $datatableButton ['name'] . "',
+							text: '" . $datatableButton ['text'] . "',
+							titleAttr:'" . $datatableButton ['titleAttr'] . "'
+							},";
+				}
+			}
+			if(! empty ( $this->getToolsButtons () )){
+				foreach ( $this->getToolsButtons () as $toolsButton ) {
+					$text = ! empty ( $toolsButton->getText () ) ? $toolsButton->getText () : $toolsButton->getId ();
+					$datatableButtons .= ",{
+					text:'" . $text . "',
+					init :function (e,dt){
+						dt.context.id='" . $toolsButton->getId () . "'";
+					foreach ( $toolsButton->getCustomAttributes () as $key => $value ) {
+						$datatableButtons .= ",dt.data('" . $key . "','" . $value . "')";
+					}
+					$datatableButtons .= "
+					}
+					";
+					$class = $toolsButton->getClass ();
+					if (! empty ( $class )) {
+						$datatableButtons .= ",className:'" . $class . "'";
+					}
+						
+					$tooltip = $toolsButton->getTooltip ();
+					if (! empty ( $tooltip )) {
+						$datatableButtons .= ",titleAttr:'" . $tooltip . "'";
+					}
+					$action = $toolsButton->getAction ();
+					if (! empty ( $action )) {
+						$datatableButtons .= ",action:function(){" . $action . "();}";
+					}
+					$datatableButtons .= "},";
+				}
+			}
+			$buttons.=substr($datatableButtons,0,strlen($datatableButtons)-1)."]}";
+		}
+		if(! empty ( $this->getStesiButtons () )){
+			foreach ( $this->getStesiButtons () as $stesiButton ) {
+				$text = ! empty ( $stesiButton->getText () ) ? $stesiButton->getText () : $stesiButton->getId ();
+				$buttons .= ",{
+					text:'" . $text . "',
+					init :function (e,dt){
+						dt.context.id='" . $stesiButton->getId () . "'";
+				foreach ( $stesiButton->getCustomAttributes () as $key => $value ) {
+					$buttons .= ",dt.data('" . $key . "','" . $value . "')";
+				}
+				$buttons .= "
+					}
+					";
+				$class = $stesiButton->getClass ();
+				if (! empty ( $class )) {
+					$buttons .= ",className:'" . $class . "'";
+				}
+
+				$tooltip = $stesiButton->getTooltip ();
+				if (! empty ( $tooltip )) {
+					$buttons .= ",titleAttr:'" . $tooltip . "'";
+				}
+				$action = $stesiButton->getAction ();
+				if (! empty ( $action )) {
+					$buttons .= ",action:function(){" . $action . "();}";
+				}
+				$buttons .= "}";
+			}
+		}
+		if(!empty($buttons)){
+			$buttons = 'buttons: [' . $buttons . "],";
+			return $buttons;
+		} else
+			return "";
+	}
 	
 	public function renderForm() {
 		if ($this->form) {
