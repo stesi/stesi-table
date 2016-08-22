@@ -578,9 +578,10 @@ class StesiTable {
 				 '"language": {
        
 				  search: "<span class=\"input-icon\">_INPUT_<i class=\"glyphicon glyphicon-search primary\"></i></span>",
-        searchPlaceholder: "Ricerca Globale",
+        		searchPlaceholder: "Ricerca Globale",
         	    "lengthMenu": "_MENU_",
-        	    "info": "_PAGES_ Pagine / Totale elementi: _TOTAL_",
+        	    "info": "Pagina _PAGE_ di _PAGES_/ Totale elementi: _TOTAL_",
+				"infoEmpty": "Non ci sono records disponibili",				 		
         	    "processing": "Caricamento dati in corso...",
 				"paginate":{
 				 	"previous":"<<",
@@ -630,6 +631,15 @@ class StesiTable {
 					$table .= '{
 							"class": "' . $column->getColumnData () . '","data": "' . $column->getColumnData () . '","name":"' . $column->getColumnData () . '",
 							"orderable":' . var_export ( $column->isOrderable (), true );
+					if($column->getColumnType () == StesiColumnType::Date){
+						$table.= ',"render": function (data) {
+        var d = new Date(data);
+var datestring = ("0" + d.getDate()).slice(-2) + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" +
+    d.getFullYear() + " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+				return datestring;
+    }';
+					}
+					
 					$table .= '},';
 				}
 			}
@@ -646,7 +656,7 @@ class StesiTable {
 				},
 				initComplete: function() {
 
-						datatable.draw();
+						datatable.draw("page");
 						var api = this.api();
 				  $("#' . $this->id . '_filter input").unbind();
 			        $("#' . $this->id . '_filter input").bind("keyup", function(e) {
@@ -705,7 +715,7 @@ class StesiTable {
 			}
 			if ($this->stateSaving && ! empty ( $this->columnReorderCallBack )) {
 				$table .= ",reorderCallback:function(){
-										datatable.draw();
+										datatable.draw('page');
 	            		$.ajax({
 									type : 'POST',
 									url : '" . $this->columnReorderCallBack . "',
