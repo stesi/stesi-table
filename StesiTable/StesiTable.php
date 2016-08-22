@@ -633,11 +633,14 @@ class StesiTable {
 							"orderable":' . var_export ( $column->isOrderable (), true );
 					if($column->getColumnType () == StesiColumnType::Date){
 						$table.= ',"render": function (data) {
-        var d = new Date(data);
+						var d = new Date(data);
+						 if ( !isNaN( d.getTime()) && d.getTime()>0 ) {
 var datestring = ("0" + d.getDate()).slice(-2) + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" +
     d.getFullYear() + " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
 				return datestring;
-    }';
+								}
+								return "";
+								}';
 					}
 					
 					$table .= '},';
