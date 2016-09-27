@@ -121,7 +121,15 @@ class StesiTable {
 		if ($useForm) {
 			$this->form = new Form ( $this->id . "_form" );
 			$this->filterFormName = "filter";
+            $this->form->addElement ( new Button ( "Reset", "button", array (
+                "id" => "reset_filtri",
+                "class" => "btn btn-default btn-warning",
+                "style" => "margin-top:10px;margin-bottom:20px;",
+                "title"=>"Resetta i filtri impostati ai valori di default"
+            ) ) );
+
 			$this->addFilterButton ( "filter_button_top" );
+
 		}
 	}
 
@@ -158,10 +166,11 @@ class StesiTable {
 	 * @return StesiColumn $column
 	 */
 	public function addColumn(StesiColumn $stesiColumn) {
+
 		$this->columns [$stesiColumn->getColumnName ()] = $stesiColumn;
 		if ($this->form) {
 			if ($stesiColumn->getColumnType()!=StesiColumnType::CustomColumn && !$stesiColumn->isHidden () && $stesiColumn->getColumnType () != StesiColumnType::Button) {
-				// Se è settato a true, creo un elemento della form instanziando dinamicamente un elemento PFBC e aggiungendolo alla form
+				// Se ï¿½ settato a true, creo un elemento della form instanziando dinamicamente un elemento PFBC e aggiungendolo alla form
 				$class = new \ReflectionClass ( "PFBC\Element\\" . (array_flip ( (new \ReflectionClass ( "Stesi\StesiTable\StesiColumnType" ))->getConstants () ) [$stesiColumn->getColumnType ()]) );
 				if (! $class)
 					throw new \Exception ( "PFBC class " . $class . " not found" );
@@ -169,7 +178,7 @@ class StesiTable {
 					$this->setDefaultColumnAttribute ( $stesiColumn );
 
 					$instance = $class->newInstanceArgs ( array (
-							($stesiColumn->getColumnType()==StesiColumnType::Select?$stesiColumn->getColumnDescription():null),
+							$stesiColumn->getColumnType()==StesiColumnType::Select?$stesiColumn->getColumnDescription():null,
 							$stesiColumn->getColumnFilterName (),
 							$stesiColumn->getOptions (),
 							$stesiColumn->getProperties ()
@@ -196,7 +205,7 @@ class StesiTable {
 						"style" => "margin-bottom:5px;"
 				) ) );
 			}
-				
+
 			if($stesiColumn->getColumnType()==StesiColumnType::Date){
 				if (! array_key_exists ( "multiple", $stesiColumn->getOptions () )){
 					$stesiColumn->getOptions ( array_merge ( $stesiColumn->getOptions (), array (
@@ -204,13 +213,13 @@ class StesiTable {
 					) ) );
 				}
 			}
-				
+
 			if (! array_key_exists ( "class", $stesiColumn->getOptions () )){
 				$stesiColumn->setOptions ( array_merge ( $stesiColumn->getOptions (), array (
 						"class" => "form-control stesi_".(array_flip ( (new \ReflectionClass ( "Stesi\StesiTable\StesiColumnType" ))->getConstants ())[$stesiColumn->getColumnType()] ).((array_key_exists ( "multiple", $stesiColumn->getOptions () ) && $stesiColumn->getOptions()['multiple']=="false")?"single":"")
 				) ) );
 			}
-				
+
 			if (! array_key_exists ( "id", $stesiColumn->getOptions () )) {
 				$stesiColumn->setOptions ( array_merge ( $stesiColumn->getOptions (), array (
 						"id" => $stesiColumn->getColumnData ()
@@ -222,6 +231,11 @@ class StesiTable {
 				) ) );
 			}
 		} else {
+            if (! array_key_exists ( "title", $stesiColumn->getProperties () )) {
+                $stesiColumn->setProperties(array_merge($stesiColumn->getProperties(), array(
+                    "title" => $stesiColumn->getColumnDescription()
+                )));
+            }
 			if (! array_key_exists ( "id", $stesiColumn->getProperties () )) {
 				$stesiColumn->setProperties ( array_merge ( $stesiColumn->getProperties (), array (
 						"id" => $stesiColumn->getColumnData ()
@@ -229,8 +243,9 @@ class StesiTable {
 			}
 			if (! array_key_exists ( "multiple", $stesiColumn->getProperties () )){
 				$stesiColumn->setProperties ( array_merge ( $stesiColumn->getProperties (), array (
-						"multiple" => true
-				) ) );
+						"multiple" => true,
+                        "style" => "width:100%"
+                ) ) );
 			}
 			if (! array_key_exists ( "class", $stesiColumn->getProperties () )){
 				$stesiColumn->setProperties ( array_merge ( $stesiColumn->getProperties (), array (
@@ -244,6 +259,7 @@ class StesiTable {
 			}
 		}
 	}
+
 	/**
 	 * Returns whether the object is Reaorderable
 	 *
@@ -396,7 +412,8 @@ class StesiTable {
 							"jqueryui"
 					)
 			) );
-				
+
+
 			$this->addFilterButton ( "filter_button_bottom" );
 		}
 		$classi_da_aggiungere = $this->tableClasses;
@@ -602,7 +619,7 @@ class StesiTable {
 		 * Create column dinamically with custom class that has the same name of column, data with columnName without point (ex ArticoliNatura), name with columnName with point (ex Articoli.Natura)
 		 */
 		foreach ( $tableColums as $column ) {
-			// Se è nascosta, la colonna non deve essere visualizzata
+			// Se ï¿½ nascosta, la colonna non deve essere visualizzata
 			if (! $column->isHidden ()) {
 				if ($column->getColumnType () == StesiColumnType::Button || $column->getColumnType()==StesiColumnType::CustomColumn ) {
 						
@@ -750,14 +767,44 @@ var datestring = ("0" + d.getDate()).slice(-2) + "-" + ("0"+(d.getMonth()+1)).sl
 			            }
 			    
 			        });
-			         $('#filter_button_top').bind('click', function(e) {
-			          	e.preventDefault();
-			        	datatable.draw();
-			        });
 			        $('#filter_button_bottom').bind('click', function(e) {
 			          	e.preventDefault();
 			        	datatable.draw();
+			        });
+			        
+			         $('#filter_button_top').bind('click', function(e) {
+			          	e.preventDefault();
+			        	datatable.draw();
 			        });";
+        $table.="
+			        $('#reset_filtri').bind('click', function(e) {";
+			          		
+                $items="
+                ";
+
+                            foreach($this->getColumns() as $column) {
+                                if ($column->getColumnType() != StesiColumnType::Button && !$column->isHidden() && $column->getColumnType() != StesiColumnType::CustomColumn)
+                                    if ($column->getColumnType() == StesiColumnType::Select) {
+                                        if (!array_key_exists("id", $column->getProperties())) {
+                                            $id = $column->getProperties()["id"];
+                                        } else {
+                                            $id = $column->getColumnData();
+                                        }
+                                        $items .="$('#".$id."').select2().val('" . $column->getDefaultFilterValue() . "').change();";
+                                    } else {
+                                        if (!array_key_exists("id", $column->getOptions())) {
+                                            $id = $column->getOptions()["id"];
+                                        } else {
+                                            $id = $column->getColumnData();
+                                        }
+                                        $items .= "$('#" . $id. "').val('" . $column->getDefaultFilterValue() . "'); ";
+                                    }
+
+
+                            }
+                            $table.=$items."
+                                datatable.draw();
+                            });";
 
 		$table .= "</script>";
 		return $table;
